@@ -10,7 +10,7 @@ interface Props {
   title?: string;
   description?: string;
 }
-const { title = `${site.name} | ${site.tagline}`, description = site.description } = Astro.props;
+const { title = `${site.name} — ${site.tagline}`, description = site.description } = Astro.props;
 ---
 
 <!doctype html>

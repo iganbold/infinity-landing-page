@@ -5,7 +5,7 @@
 
 export const site = {
   name: "Infinity",
-  tagline: "The company brain",
+  tagline: "Applied Super Intelligence Lab",
   description:
     "Goal turns everything your company knows into one living brain that every person and every AI agent can think with, safely.",
   nav: [
