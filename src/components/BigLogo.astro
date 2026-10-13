@@ -1,0 +1,95 @@
+---
+import { site } from "@/content/site";
+
+/** Oversized brand mark and wordmark that closes the page, drawn through a liquid warp. */
+const MARK = "M20 12.5C16.6 8.1 13.3 5.6 10 5.6a6.9 6.9 0 0 0 0 13.8c3.3 0 6.6-2.5 10-6.9zm0 0c3.4 4.4 6.7 6.9 10 6.9a6.9 6.9 0 0 0 0-13.8c-3.3 0-6.6 2.5-10 6.9z";
+---
+
+<div class="big-logo frame" aria-label={site.name} role="img" data-reveal data-big-logo data-mark={MARK}>
+  <svg class="mark" viewBox="0 0 40 25" aria-hidden="true">
+    <path d={MARK} fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"></path>
+  </svg>
+  <span class="word" aria-hidden="true">{site.name}<span class="baseline" /></span>
+</div>
+
+<script>
+  import { mountWarpText } from "@/scripts/warp-text";
+
+  const host = document.querySelector<HTMLElement>("[data-big-logo]");
+  if (host) {
+    const mark = host.querySelector<SVGSVGElement>(".mark")!;
+    const word = host.querySelector<HTMLElement>(".word")!;
+    const path = new Path2D(host.dataset.mark);
+    // Paint the lockup from the DOM's own layout, so the warp lines up with it exactly.
+    mountWarpText(host, (ctx, box) => {
+      const color = "#000";
+      const m = mark.getBoundingClientRect(), s = m.width / 40;
+      ctx.save();
+      ctx.translate(m.left - box.left, m.top - box.top);
+      ctx.scale(s, s);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3.4;
+      ctx.lineCap = "round";
+      ctx.stroke(path);
+      ctx.restore();
+
+      // Baseline from a zero-size marker sitting on it, so the text lands exactly where the DOM puts it.
+      const cs = getComputedStyle(word), w = word.getBoundingClientRect();
+      const base = word.querySelector(".baseline")!.getBoundingClientRect().top;
+      ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      ctx.fillStyle = color;
+      ctx.textBaseline = "alphabetic";
+      const ls = parseFloat(cs.letterSpacing) || 0;
+      let x = w.left - box.left;
+      for (const ch of Array.from(word.firstChild?.textContent ?? "")) {
+        ctx.fillText(ch, x, base - box.top);
+        x += ctx.measureText(ch).width + ls;
+      }
+    }, {
+      ink: getComputedStyle(host).color,
+      // A touch less colour split than the default, so the fringe reads as glass, not glitch.
+      refraction: 0.012,
+      background: getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim() || "#faf8f3",
+    });
+  }
+</script>
+
+<style>
+  .big-logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.22em;
+    padding: clamp(40px, 7vw, 96px) 0 0;
+    /* Scales with the page so the lockup spans the frame. */
+    font-size: clamp(64px, 15.5vw, 236px);
+    /* Tall enough that the "y" descender sits inside the box, not past the page's end. */
+    line-height: 1.24;
+    color: #2b2a26;
+    user-select: none;
+  }
+  /* Once the warp has drawn, the DOM lockup only holds the layout. */
+  :global(.big-logo.warp-ready) > .mark,
+  :global(.big-logo.warp-ready) > .word {
+    visibility: hidden;
+  }
+  .baseline {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    vertical-align: baseline;
+  }
+  .mark {
+    flex: none;
+    width: 1.6em;
+    height: 1em;
+    overflow: visible;
+  }
+  .word {
+    font-weight: 600;
+    letter-spacing: -0.055em;
+    /* Optical: the cap height sits centred on the mark. */
+    transform: translateY(-0.04em);
+  }
+</style>

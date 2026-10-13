@@ -1,0 +1,296 @@
+---
+import { howItWorks as h } from "@/content/site";
+
+/** One Hairline figure per step (public/hairline/<name>.js), in step order. */
+const FIGURES = ["target", "dock", "table"];
+---
+
+<section class="how" id="how-it-works" aria-labelledby="how-title">
+  <div class="frame">
+    <header class="head">
+      <h2 id="how-title" class="title" data-reveal>{h.title}</h2>
+      <span class="title-rule" aria-hidden="true" data-reveal style="--d:1"></span>
+    </header>
+
+    <ol class="steps">
+      {
+        h.steps.map((step, i) => (
+          <li class:list={["step", { "step--flip": i % 2 === 1 }]}>
+            <figure class="visual" data-reveal>
+              <div class="hl-stage" data-hairline-slot={FIGURES[i]} />
+              <span class="v-read mono" aria-hidden="true" data-hairline-read={FIGURES[i]} />
+              <figcaption class="v-cap">{step.visual}</figcaption>
+            </figure>
+            <div class="text" data-reveal style="--d:1">
+              <span class="n mono">{String(i + 1).padStart(2, "0")}</span>
+              <h3 class="step-title">{step.title}</h3>
+              <p class="step-body">{step.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="closing" data-reveal>
+      <h3 class="closing-title">{h.closing.title}</h3>
+      <p class="closing-body">{h.closing.body}</p>
+      <a href={h.closing.cta.href} class="closing-cta">
+        {h.closing.cta.label}
+        <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4 12L12 4M5.5 4H12v6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!--
+  Hairline figures (isometric line drawings that answer the pointer).
+  The kernel is a classic script exposing HL; the host below mounts each
+  figure into its panel and starts its tour; the figures are modules, so they
+  run after both, in order.
+-->
+<script is:inline src="/hairline/kernel.js"></script>
+<script is:inline>
+  (() => {
+    const stages = new WeakSet();
+    window.hairline = (figure) => {
+      const stage = document.querySelector(`[data-hairline-slot="${figure.name}"]`);
+      if (!stage || stages.has(stage)) return;
+      stages.add(stage);
+      HL.inject(document);
+      stage.setAttribute("data-hairline", figure.name);
+      stage.setAttribute("role", "img");
+      stage.setAttribute("aria-label", figure.means);
+      const svg = HL.mk("svg", { viewBox: "0 0 400 320", "aria-hidden": "true" }, stage);
+      const out = document.querySelector(`[data-hairline-read="${figure.name}"]`);
+      let text = "";
+      const read = {
+        get textContent() { return text; },
+        set textContent(v) { text = v == null ? "" : String(v); if (out) out.textContent = text; },
+      };
+      // the figure's own default: the middle of its range
+      figure.mount({ stage, svg, read }, figure.range[1]);
+      if (!text) read.textContent = "rest";
+      // an unseen pointer walks the figure's tour until a real one arrives, and resumes after it leaves
+      HL.tour(stage, figure.tour || HL.LAP);
+    };
+  })();
+</script>
+{FIGURES.map((name) => <script is:inline type="module" src={`/hairline/${name}.js`} />)}
+
+<style>
+  .how {
+    position: relative;
+    z-index: 1;
+    padding: clamp(80px, 12vh, 140px) 0 clamp(120px, 16vh, 180px);
+    --ink-dark: #16150f;
+    --ink-mid: #57544a;
+  }
+
+  .head {
+    display: grid;
+    justify-items: center;
+    gap: 22px;
+    margin-bottom: clamp(56px, 8vw, 110px);
+    text-align: center;
+  }
+  .title {
+    max-width: 16ch;
+    font-size: clamp(34px, 5vw, 76px);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    color: var(--ink-dark);
+  }
+  /* Short brand rule under the headline. */
+  .title-rule {
+    width: 72px;
+    height: 4px;
+    border-radius: 4px;
+    background: #2f7a55;
+  }
+
+  /* ------------------------------------------------ steps */
+
+  .steps {
+    display: grid;
+    gap: clamp(56px, 8vw, 120px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 6vw, 96px);
+  }
+  /* Mirror the row: visual on the right, still in the wider column. */
+  .step--flip {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  }
+  .step--flip .visual {
+    order: 2;
+  }
+  .step--flip .text {
+    justify-self: end;
+  }
+
+  .text {
+    display: grid;
+    justify-items: start;
+    gap: 16px;
+    max-width: 440px;
+  }
+  .n {
+    display: inline-grid;
+    place-items: center;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #2f7a55;
+    background: rgba(47, 122, 85, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(47, 122, 85, 0.2);
+  }
+  .step-title {
+    font-size: clamp(26px, 2.6vw, 40px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--ink-dark);
+  }
+  .step-body {
+    font-size: clamp(16px, 1.25vw, 18px);
+    line-height: 1.6;
+    color: var(--ink-mid);
+  }
+
+  /* Figure panel: a flat forest ground, so the figure's plates (filled with
+     the ground colour) sit seamlessly on it. */
+  .visual {
+    position: relative;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    aspect-ratio: 5 / 4;
+    border-radius: 28px;
+    overflow: hidden;
+    background: #1a3326;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+      0 36px 70px -40px rgba(20, 45, 30, 0.55);
+  }
+  /* The figure's palette: light strokes on forest green. */
+  .hl-stage {
+    width: 100%;
+    --hairline-plate: #1a3326;
+    --hairline-hi: #eaf6cc;
+    --hairline-edge: #a3c2a8;
+    --hairline-mid: #648d70;
+    --hairline-lo: #3d604a;
+    --hairline-stroke: 1;
+  }
+  .v-read {
+    position: absolute;
+    top: 24px;
+    right: 22px;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: rgba(234, 246, 204, 0.75);
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Top corners: caption left, read-out right, clear of the drawing. */
+  .v-cap {
+    position: absolute;
+    left: 24px;
+    top: 18px;
+    font-size: clamp(16px, 1.4vw, 20px);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: rgba(255, 255, 255, 0.9);
+    pointer-events: none;
+  }
+
+  /* ------------------------------------------------ closing */
+
+  .closing {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    margin-top: clamp(80px, 11vw, 150px);
+    padding: clamp(40px, 6vw, 72px) clamp(24px, 4vw, 48px);
+    border-radius: 28px;
+    text-align: center;
+    background:
+      radial-gradient(70% 80% at 50% 0%, rgba(255, 236, 200, 0.55), transparent 70%),
+      linear-gradient(180deg, #f2f4ec 0%, #e5ebdf 100%);
+    box-shadow: inset 0 0 0 1px rgba(40, 70, 50, 0.07);
+  }
+  .closing-title {
+    max-width: 20ch;
+    font-size: clamp(26px, 3vw, 44px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--ink-dark);
+  }
+  .closing-body {
+    max-width: 44ch;
+    font-size: clamp(16px, 1.25vw, 18px);
+    line-height: 1.6;
+    color: var(--ink-mid);
+  }
+
+  /* Same pill as the other "Book a demo" buttons on the light sections. */
+  .closing-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    margin-top: 12px;
+    padding: 0 22px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #f7f1e3;
+    background: #16150f;
+    transition:
+      background 250ms var(--ease),
+      box-shadow 250ms var(--ease);
+  }
+  .closing-cta:hover {
+    background: #1f3a2f;
+    box-shadow: 0 14px 30px -14px rgba(31, 58, 47, 0.6);
+  }
+  .closing-cta svg {
+    transition: transform 300ms var(--ease);
+  }
+  .closing-cta:hover svg {
+    transform: translate(2px, -2px);
+  }
+
+  @media (max-width: 860px) {
+    .step {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .step--flip {
+      grid-template-columns: 1fr;
+    }
+    .step--flip .visual {
+      order: 0;
+    }
+    .step--flip .text {
+      justify-self: start;
+    }
+    .visual {
+      border-radius: 20px;
+    }
+    .closing {
+      border-radius: 22px;
+    }
+  }
+</style>

@@ -1,0 +1,31 @@
+---
+/** The green disc with an arrow that ends every pill button. */
+---
+
+<span class="arrow-disc" aria-hidden="true">
+  <svg width="14" height="14" viewBox="0 0 16 16"
+    ><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+    ></path></svg
+  >
+</span>
+
+<style>
+  .arrow-disc {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: var(--on-green);
+    background:
+      radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%),
+      var(--green);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 0 18px -2px rgba(207, 238, 143, 0.7);
+    transition: transform 400ms var(--ease);
+  }
+  :global(a:hover) > .arrow-disc {
+    transform: rotate(-45deg);
+  }
+</style>

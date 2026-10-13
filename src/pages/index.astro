@@ -1,0 +1,89 @@
+---
+import Base from "@/layouts/Base.astro";
+import Hero from "@/components/Hero.astro";
+import GradualBlur from "@/components/GradualBlur.astro";
+import ScrollHint from "@/components/ScrollHint.astro";
+import WhoWeAre from "@/components/WhoWeAre.astro";
+import HowItWorks from "@/components/HowItWorks.astro";
+import Footer from "@/components/Footer.astro";
+import BigLogo from "@/components/BigLogo.astro";
+---
+
+<Base>
+  <!-- Everything that lifts on the footer reveal. Opaque, so the panel behind stays hidden. -->
+  <div class="page" data-reveal-page>
+  <Hero />
+  <WhoWeAre />
+  <HowItWorks />
+  <Footer />
+  <BigLogo />
+  </div>
+
+  <!-- Behind the page: uncovered by scrolling past the bottom. -->
+  <div class="reveal-panel" aria-hidden="true" data-reveal-panel>
+    <img src="/infinity-background.png" alt="" loading="lazy" decoding="async" />
+  </div>
+
+  <!-- Pinned to the bottom of the viewport: everything scrolls under it. -->
+  <GradualBlur fixed position="bottom" height="10rem" divisions={5} strength={2} zIndex={40} />
+  <ScrollHint />
+</Base>
+
+<script>
+  import { footerReveal } from "@/scripts/footer-reveal";
+
+  const page = document.querySelector<HTMLElement>("[data-reveal-page]");
+  const panel = document.querySelector<HTMLElement>("[data-reveal-panel]");
+  if (page && panel) footerReveal(page, panel);
+</script>
+
+<script>
+  // The page ends flush on the big logo, so the pinned bottom blur fades away
+  // as soon as the logo comes into view, and back when scrolling up.
+  const logo = document.querySelector("[data-big-logo]");
+  const blur = document.querySelector<HTMLElement>(".gradual-blur");
+  if (logo && blur) {
+    blur.style.transition = "opacity 400ms cubic-bezier(0.22, 1, 0.36, 1)";
+    new IntersectionObserver(([e]) => (blur.style.opacity = e.isIntersecting ? "0" : "1"), { threshold: 0.15 }).observe(logo);
+  }
+</script>
+
+<style>
+  /* Same ground as the body, but on the element that moves, so it stays opaque. */
+  .page {
+    position: relative;
+    background-color: var(--canvas);
+    background-image: linear-gradient(
+      180deg,
+      var(--canvas-green) 0,
+      var(--canvas-green) 105vh,
+      #4f6b52 135vh,
+      #c9d3c0 165vh,
+      var(--canvas) 195vh
+    );
+    background-repeat: no-repeat;
+    /* Nothing may overhang the page's end, or the panel behind would peek out. */
+    overflow-x: clip;
+    overflow-y: clip;
+  }
+
+  .reveal-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    height: min(300px, 38vh);
+    overflow: hidden;
+    background: #1d3a2b;
+  }
+  .reveal-panel img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 78%;
+    filter: saturate(0.9) brightness(0.62);
+  }
+</style>

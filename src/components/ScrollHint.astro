@@ -1,0 +1,64 @@
+---
+import { hero } from "@/content/site";
+---
+
+<!-- Lives outside the hero so it can sit above the page-level gradual blur. -->
+<p class="scroll" aria-hidden="true" data-scroll-hint>
+  <svg width="12" height="12" viewBox="0 0 12 12"
+    ><path d="M6 1v10M2 7l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"
+    ></path></svg
+  >
+  {hero.scroll}
+</p>
+
+<script>
+  // Fade out over the first stretch of scrolling.
+  const el = document.querySelector<HTMLElement>("[data-scroll-hint]");
+  if (el) {
+    const update = () => {
+      const o = Math.max(0, 1 - window.scrollY / 160);
+      el.style.opacity = String(o);
+      el.style.visibility = o === 0 ? "hidden" : "visible";
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+  }
+</script>
+
+<style>
+  .scroll {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 30px;
+    z-index: 45;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: rgba(247, 241, 227, 0.8);
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+  .scroll svg {
+    color: #f7f1e3;
+    animation: nudge 2.2s var(--ease) infinite;
+  }
+  @keyframes nudge {
+    0%,
+    100% {
+      transform: translateY(-2px);
+    }
+    50% {
+      transform: translateY(3px);
+    }
+  }
+  @media (max-width: 860px) {
+    .scroll {
+      bottom: 24px;
+    }
+  }
+</style>

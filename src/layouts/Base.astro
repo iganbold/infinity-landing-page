@@ -1,0 +1,58 @@
+---
+import "@/styles/global.css";
+import { site } from "@/content/site";
+import Nav from "@/components/Nav.astro";
+
+/** Nav is hidden for now; flip to true to bring back the top bar and bottom dock. */
+const showNav = false;
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title = `${site.name} | ${site.tagline}`, description = site.description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#1d3a2b" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    {showNav && <Nav />}
+    <main id="main">
+      <slot />
+    </main>
+    <script>
+      import "@/scripts/reveal";
+    </script>
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: fixed;
+    left: 16px;
+    top: 16px;
+    transform: translateY(-200%);
+    z-index: 100;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: var(--green);
+    color: var(--on-green);
+    font-size: 14px;
+    transition: transform 200ms var(--ease);
+  }
+  .skip:focus {
+    transform: none;
+  }
+</style>

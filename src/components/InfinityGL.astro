@@ -1,0 +1,52 @@
+---
+/**
+ * WebGL infinity (liquid tube + streaming lights). Place inside a positioned
+ * box whose shape matches the SVG it enhances; the SVG stays as a fallback.
+ *
+ * viewPad: where the curve sits inside that box, as fractions (matches the SVG viewBox padding).
+ * bleed:   how far the canvas extends past the box, as fractions, so glow and lights aren't clipped.
+ * thickness: tube radius as a fraction of the curve width.
+ */
+interface Props {
+  mode?: "liquid" | "lights" | "both";
+  viewPad: [number, number];
+  bleed?: [number, number];
+  thickness?: number;
+  particles?: number;
+}
+const { mode = "both", viewPad, bleed = [0, 0], thickness = 0.022, particles = 1200 } = Astro.props;
+const [bx, by] = bleed;
+const pad = [(bx + viewPad[0]) / (1 + 2 * bx), (by + viewPad[1]) / (1 + 2 * by)];
+const style = `left:${-bx * 100}%;top:${-by * 100}%;width:${(1 + 2 * bx) * 100}%;height:${(1 + 2 * by) * 100}%`;
+---
+
+<canvas
+  class="igl"
+  style={style}
+  data-infinity-gl
+  data-mode={mode}
+  data-pad={pad.map((n) => n.toFixed(5)).join(",")}
+  data-thickness={thickness}
+  data-particles={particles}
+  aria-hidden="true"></canvas>
+
+<script>
+  import "@/scripts/infinity-gl";
+</script>
+
+<style>
+  .igl {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.4s var(--ease);
+  }
+  .igl[data-ready] {
+    opacity: 1;
+  }
+  /* Hide the SVG stand-in once WebGL is drawing. */
+  :global(:has(> .igl[data-ready]) > .gl-fallback) {
+    opacity: 0;
+    transition: opacity 1s var(--ease);
+  }
+</style>

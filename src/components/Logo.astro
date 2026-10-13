@@ -1,0 +1,46 @@
+---
+import { site } from "@/content/site";
+
+interface Props {
+  /** Height in px; the mark is 1.6× as wide. */
+  size?: number;
+  wordmark?: boolean;
+  /** "white" draws the mark in solid white instead of the gradient. */
+  tone?: "gradient" | "white";
+}
+const { size = 26, wordmark = true, tone = "gradient" } = Astro.props;
+// Each instance needs its own gradient id.
+const id = `lg-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<span class="logo">
+  <svg width={size * 1.6} height={size} viewBox="0 0 40 25" aria-hidden="true">
+    <defs>
+      <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#ffcf7a"></stop>
+        <stop offset=".45" stop-color="#d6f58a"></stop>
+        <stop offset="1" stop-color="#4fe3b0"></stop>
+      </linearGradient>
+    </defs>
+    <path
+      d="M20 12.5C16.6 8.1 13.3 5.6 10 5.6a6.9 6.9 0 0 0 0 13.8c3.3 0 6.6-2.5 10-6.9zm0 0c3.4 4.4 6.7 6.9 10 6.9a6.9 6.9 0 0 0 0-13.8c-3.3 0-6.6 2.5-10 6.9z"
+      fill="none"
+      stroke={tone === "white" ? "#ffffff" : `url(#${id})`}
+      stroke-width="3.4"
+      stroke-linecap="round"></path>
+  </svg>
+  {wordmark && <span class="logo-word">{site.name}</span>}
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .logo-word {
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: -0.03em;
+  }
+</style>

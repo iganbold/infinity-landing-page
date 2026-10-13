@@ -1,0 +1,51 @@
+---
+/**
+ * Gradual blur, after React Bits' GradualBlur (https://reactbits.dev/animations/gradual-blur):
+ * stacked backdrop-filter layers, each masked to its own band, with blur growing
+ * exponentially toward the edge. Pure CSS, no JS. Place inside a positioned parent.
+ */
+interface Props {
+  position?: "top" | "bottom";
+  height?: string;
+  /** Number of stacked layers; more is smoother and costlier. */
+  divisions?: number;
+  strength?: number;
+  exponential?: boolean;
+  zIndex?: number;
+  /** Pin to the viewport instead of the parent, so content scrolls under it. */
+  fixed?: boolean;
+}
+const { position = "bottom", height = "8rem", divisions = 6, strength = 2, exponential = true, zIndex = -1, fixed = false } = Astro.props;
+
+const inc = 100 / divisions;
+const dir = position === "bottom" ? "to bottom" : "to top";
+const r = (n: number) => Math.round(n * 10) / 10;
+const layers = Array.from({ length: divisions }, (_, k) => {
+  const i = k + 1;
+  const p = i / divisions;
+  const blur = exponential ? Math.pow(2, p * 4) * 0.0625 * strength : 0.0625 * (p * divisions + 1) * strength;
+  const [p1, p2, p3, p4] = [inc * i - inc, inc * i, inc * i + inc, inc * i + inc * 2].map(r);
+  let stops = `transparent ${p1}%, black ${p2}%`;
+  if (p3 <= 100) stops += `, black ${p3}%`;
+  if (p4 <= 100) stops += `, transparent ${p4}%`;
+  const mask = `linear-gradient(${dir}, ${stops})`;
+  return `-webkit-backdrop-filter:blur(${blur.toFixed(3)}rem);backdrop-filter:blur(${blur.toFixed(3)}rem);-webkit-mask-image:${mask};mask-image:${mask}`;
+});
+---
+
+<div class="gradual-blur" style={`position:${fixed ? "fixed" : "absolute"};${position}:0;height:${height};z-index:${zIndex}`} aria-hidden="true">
+  {layers.map((style) => <div style={style} />)}
+</div>
+
+<style>
+  .gradual-blur {
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    isolation: isolate;
+  }
+  .gradual-blur > div {
+    position: absolute;
+    inset: 0;
+  }
+</style>

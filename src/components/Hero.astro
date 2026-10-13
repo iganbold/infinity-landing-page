@@ -1,0 +1,375 @@
+---
+import { hero } from "@/content/site";
+import InfinityGL from "./InfinityGL.astro";
+import { infinityPath } from "@/lib/infinity";
+
+const W = 1100;
+const H = 400;
+const d = infinityPath(W, H);
+// Headline split into words for the staggered reveal; lines keep their break.
+let wi = 0;
+const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i: wi++ })));
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="photo" aria-hidden="true" data-parallax>
+    <img src="/infinity-background.png" alt="" fetchpriority="high" decoding="async" />
+  </div>
+  <div class="shade" aria-hidden="true"></div>
+
+  <div class="fade" aria-hidden="true"></div>
+
+  <div class="stage frame">
+    <!-- The loop and the copy share one box, so the copy lines up with the curve at any width. -->
+    <div class="comp">
+      <div class="loop-wrap" aria-hidden="true">
+        <svg class="loop gl-fallback" viewBox={`-40 -40 ${W + 80} ${H + 80}`}>
+          <defs>
+            <linearGradient id="hero-g" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stop-color="#ffc773"></stop>
+              <stop offset=".4" stop-color="#ffe8b3"></stop>
+              <stop offset=".75" stop-color="#dcedb8"></stop>
+              <stop offset="1" stop-color="#fff3d6"></stop>
+            </linearGradient>
+            <filter id="hero-blur" x="-20%" y="-50%" width="140%" height="200%">
+              <feGaussianBlur stdDeviation="22"></feGaussianBlur>
+            </filter>
+          </defs>
+          <path d={d} class="glow" stroke="url(#hero-g)" filter="url(#hero-blur)"></path>
+          <path d={d} class="rail" stroke="url(#hero-g)"></path>
+          <path d={d} class="comet" stroke="url(#hero-g)" pathLength="1000"></path>
+        </svg>
+        <InfinityGL mode="both" viewPad={[40 / 1180, 40 / 480]} bleed={[0.06, 0.22]} thickness={0.022} particles={2000} />
+      </div>
+      <div class="copy" data-parallax-text>
+        <div class="copy-inner">
+        <h1 id="hero-title" class="display" aria-label={hero.title.replace("\n", " ")}>
+          {
+            lines.map((line) => (
+              <span class="line" aria-hidden="true">
+                {line.map(({ w, i }) => (
+                  <span class="w" style={`--i:${i}`}>{w}</span>
+                ))}
+              </span>
+            ))
+          }
+        </h1>
+        <p class="lead" data-reveal style="--d:2">{hero.subtitle}</p>
+        </div>
+      </div>
+    </div>
+    <a href={hero.cta.href} class="cta" data-reveal style="--d:3" data-parallax-text>
+      {hero.cta.label}
+      <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"
+        ><path d="M4 12L12 4M5.5 4H12v6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"
+        ></path></svg
+      >
+    </a>
+  </div>
+</section>
+
+<script>
+  // Parallax: the photo drifts down at a fraction of the scroll speed, so it
+  // trails behind the page, while the copy rises a little faster than the page.
+  // Uses the `translate` property so it composes with existing transforms.
+  // Only runs while the hero is on screen.
+  const photo = document.querySelector<HTMLElement>("[data-parallax]");
+  const texts = [...document.querySelectorAll<HTMLElement>("[data-parallax-text]")];
+  if (photo && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let visible = true;
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      const y = window.scrollY;
+      photo.style.transform = `translate3d(0, ${y * 0.4}px, 0)`;
+      for (const t of texts) t.style.translate = `0 ${-y * 0.35}px`;
+    };
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(photo.parentElement!);
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (visible && !raf) raf = requestAnimationFrame(apply);
+      },
+      { passive: true },
+    );
+    apply();
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    min-height: max(100vh, 680px);
+    overflow: clip;
+    background: var(--canvas-green);
+    --cream: #f7f1e3;
+  }
+
+  /* Sunrise photo, drifting in very slowly. */
+  .photo {
+    position: absolute;
+    inset: 0;
+    z-index: -4;
+    will-change: transform;
+  }
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 50%;
+    transform-origin: 30% 45%;
+    animation: drift 40s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    from {
+      transform: scale(1.04);
+    }
+    to {
+      transform: scale(1.12) translate(-1%, -1%);
+    }
+  }
+  /* Darken the middle for the copy, and the edges for depth. */
+  .shade {
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+    background:
+      radial-gradient(46% 36% at 50% 50%, rgba(10, 10, 8, 0.55), transparent 100%),
+      linear-gradient(to bottom, rgba(14, 16, 20, 0.35), transparent 30%, transparent 70%, rgba(10, 10, 8, 0.25)),
+      radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(8, 8, 6, 0.55) 100%);
+  }
+
+  /* ------------------------------------------------ the loop */
+
+  /* Same proportions as the loop's box. The curve itself spans 40..440 of 480
+     vertically (8.33% padding top and bottom). */
+  .comp {
+    position: relative;
+    width: min(1000px, 64vw);
+    aspect-ratio: 1180 / 480;
+  }
+  .loop-wrap {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  /* Shrinks to the title's width so the description lines up with it. */
+  .copy-inner {
+    display: grid;
+    justify-items: center;
+    width: max-content;
+    max-width: 100%;
+  }
+  /* Copy sits on the curve's bottom edge, centered. */
+  .copy {
+    position: absolute;
+    left: 50%;
+    bottom: 8.333%;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    width: 100%;
+    transform: translateX(-50%);
+    /* Moved by the scroll parallax: keep it on its own layer so it's never repainted. */
+    will-change: translate;
+  }
+  .loop {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .loop path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .glow {
+    stroke-width: 46;
+    opacity: 0.3;
+  }
+  .rail {
+    stroke-width: 1.5;
+    opacity: 0.55;
+  }
+  .comet {
+    stroke-width: 5;
+    stroke-dasharray: 140 860;
+    animation: travel 9s linear infinite;
+  }
+  @keyframes travel {
+    to {
+      stroke-dashoffset: -1000;
+    }
+  }
+  .fade {
+    position: absolute;
+    inset: auto 0 0;
+    height: 220px;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--canvas-green));
+  }
+
+  .stage {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    min-height: inherit;
+    /* More room below than above lifts the loop a little above center. */
+    padding: 60px 0 160px;
+    text-align: center;
+  }
+
+  .display {
+    white-space: pre-line;
+    font-size: clamp(36px, 5.2vw, 84px);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: var(--cream);
+    text-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.55),
+      0 12px 70px rgba(0, 0, 0, 0.78),
+      0 0 160px rgba(0, 0, 0, 0.62);
+  }
+
+  .line {
+    display: block;
+  }
+  .w {
+    display: inline-block;
+    margin-right: 0.22em;
+    opacity: 0;
+    /* No filter: blur here. Filters over the WebGL canvas make Chrome tile it with seams. */
+    transform: translateY(0.5em) rotate(3deg) scale(0.96);
+    transform-origin: 0 100%;
+    animation: word-in 1.1s var(--ease) forwards;
+    animation-delay: calc(150ms + var(--i) * 75ms);
+  }
+  .w:last-child {
+    margin-right: 0;
+  }
+  @keyframes word-in {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .lead {
+    /* Takes exactly the title's width (see .copy-inner). */
+    width: 0;
+    min-width: 100%;
+    margin-top: clamp(16px, 2.2vh, 22px);
+    text-wrap: pretty;
+    font-size: clamp(14px, 1.05vw, 16px);
+    line-height: 1.6;
+    color: #ffffff;
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.9),
+      0 2px 12px rgba(0, 0, 0, 0.85),
+      0 6px 36px rgba(0, 0, 0, 0.9),
+      0 0 90px rgba(0, 0, 0, 0.75);
+  }
+
+  /* Solid pill button: the one opaque shape on the page. */
+  .cta {
+    will-change: translate;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 0 22px;
+    height: 48px;
+    font-size: 15px;
+    border-radius: 999px;
+    font-weight: 500;
+    color: #17160f;
+    background: var(--cream);
+    box-shadow: 0 16px 40px -16px rgba(255, 214, 140, 0.55);
+    transition:
+      background 250ms var(--ease),
+      box-shadow 250ms var(--ease);
+  }
+  /* A light sweep across the button every few seconds. */
+  .cta {
+    position: relative;
+    overflow: hidden;
+  }
+  .cta::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%);
+    transform: translateX(-120%);
+    animation: sheen 4.5s var(--ease) 2.2s infinite;
+    pointer-events: none;
+  }
+  @keyframes sheen {
+    0% {
+      transform: translateX(-120%);
+    }
+    35%,
+    100% {
+      transform: translateX(120%);
+    }
+  }
+  .cta:hover {
+    background: #ffffff;
+    box-shadow: 0 18px 48px -14px rgba(255, 214, 140, 0.8);
+  }
+  .cta svg {
+    transition: transform 300ms var(--ease);
+  }
+  .cta:hover svg {
+    transform: translate(2px, -2px);
+  }
+
+  @media (max-width: 860px) {
+    .hero {
+      min-height: 100svh;
+    }
+    /* Phones: copy stacks normally, the loop floats centered behind it. */
+    .comp {
+      width: 100%;
+      aspect-ratio: auto;
+    }
+    .loop-wrap {
+      inset: auto;
+      left: 50%;
+      top: 50%;
+      width: 100vw;
+      aspect-ratio: 1180 / 480;
+      transform: translate(-50%, -50%);
+    }
+    /* Phones: the title is narrow, so the description uses the full width. */
+    .copy-inner {
+      width: auto;
+    }
+    .lead {
+      width: auto;
+      min-width: 0;
+      max-width: 36ch;
+      text-wrap: balance;
+    }
+    .copy {
+      position: relative;
+      left: auto;
+      bottom: auto;
+      transform: none;
+    }
+    .stage {
+      padding: 100px 0 140px;
+    }
+    .display {
+      font-size: clamp(32px, 8.6vw, 56px);
+      line-height: 1.02;
+    }
+    .cta {
+      margin-top: 28px;
+    }
+  }
+</style>
