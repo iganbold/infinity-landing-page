@@ -29,7 +29,8 @@ const id = `lg-${Math.random().toString(36).slice(2, 8)}`;
       stroke-width="3.4"
       stroke-linecap="round"></path>
   </svg>
-  {wordmark && <span class="logo-word">{site.name}</span>}
+  {/* The wordmark is set in lowercase; the name stays "Infinity" everywhere else. */}
+  {wordmark && <span class="logo-word">{site.name.toLowerCase()}</span>}
 </span>
 
 <style>

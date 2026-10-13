@@ -7,6 +7,9 @@ import WhoWeAre from "@/components/WhoWeAre.astro";
 import HowItWorks from "@/components/HowItWorks.astro";
 import Footer from "@/components/Footer.astro";
 import BigLogo from "@/components/BigLogo.astro";
+
+/** Footer reveal (scroll past the bottom to lift the page). Off for now; flip to true to bring it back. */
+const footerReveal = false;
 ---
 
 <Base>
@@ -20,9 +23,13 @@ import BigLogo from "@/components/BigLogo.astro";
   </div>
 
   <!-- Behind the page: uncovered by scrolling past the bottom. -->
-  <div class="reveal-panel" aria-hidden="true" data-reveal-panel>
-    <img src="/infinity-background.png" alt="" loading="lazy" decoding="async" />
-  </div>
+  {
+    footerReveal && (
+      <div class="reveal-panel" aria-hidden="true" data-reveal-panel>
+        <img src="/infinity-background.png" alt="" loading="lazy" decoding="async" />
+      </div>
+    )
+  }
 
   <!-- Pinned to the bottom of the viewport: everything scrolls under it. -->
   <GradualBlur fixed position="bottom" height="10rem" divisions={5} strength={2} zIndex={40} />
@@ -34,6 +41,7 @@ import BigLogo from "@/components/BigLogo.astro";
 
   const page = document.querySelector<HTMLElement>("[data-reveal-page]");
   const panel = document.querySelector<HTMLElement>("[data-reveal-panel]");
+  // Runs only when the panel is rendered (see `footerReveal` above).
   if (page && panel) footerReveal(page, panel);
 </script>
 
