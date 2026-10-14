@@ -262,6 +262,8 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
 
   /* Under the loop, over the darker hills, where it reads clearly. */
   .lead {
+    /* Moved by the scroll parallax: its own layer, or its big text-shadows repaint every scroll frame. */
+    will-change: translate;
     max-width: 34em;
     margin-top: 4px;
     text-wrap: pretty;
