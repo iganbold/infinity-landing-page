@@ -12,8 +12,10 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
 ---
 
 <section class="hero" aria-labelledby="hero-title">
-  <div class="photo" aria-hidden="true" data-parallax>
-    <img src="/infinity-background.png" alt="" fetchpriority="high" decoding="async" />
+  <div class="photo-clip" aria-hidden="true">
+    <div class="photo" data-parallax>
+      <img src="/infinity-background.png" alt="" fetchpriority="high" decoding="async" />
+    </div>
   </div>
   <div class="shade" aria-hidden="true"></div>
 
@@ -85,7 +87,7 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
       photo.style.transform = `translate3d(0, ${y * 0.4}px, 0)`;
       for (const t of texts) t.style.translate = `0 ${-y * 0.35}px`;
     };
-    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(photo.parentElement!);
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(photo.closest(".hero")!);
     window.addEventListener(
       "scroll",
       () => {
@@ -107,11 +109,20 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     --cream: #f7f1e3;
   }
 
+  /* The photo's own clip: still, and stopping just short of the hero's bottom,
+     inside the fade's solid end. Clipped only by the hero, the moving photo layer
+     could leak a 1px line of photo below the fade, at the seam with the next section. */
+  .photo-clip {
+    position: absolute;
+    inset: 0 0 6px;
+    z-index: -4;
+    overflow: clip;
+  }
   /* Sunrise photo, drifting in very slowly. */
   .photo {
     position: absolute;
-    inset: 0;
-    z-index: -4;
+    /* Still the hero's full size. */
+    inset: 0 0 -6px;
     will-change: transform;
   }
   .photo img {
@@ -211,7 +222,8 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     height: 220px;
     z-index: -1;
     pointer-events: none;
-    background: linear-gradient(to bottom, transparent, var(--canvas-green));
+    /* Solid for the last 12px, which cover the end of the photo's clip. */
+    background: linear-gradient(to bottom, transparent, var(--canvas-green) calc(100% - 12px));
   }
 
   .stage {
