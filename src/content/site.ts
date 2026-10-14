@@ -47,13 +47,18 @@ export const howItWorks = {
     },
     {
       title: "Bring it into your company.",
-      body: "Connect the information and tools the work depends on. Give the System context about your team and how the work gets done.",
+      body: "Teach it what your team knows and how you like to work. Plug in the tools you already use, build small apps on top of it, and let your best skills reach every corner of the organization, including the projects that once felt out of reach.",
       visual: "Company context and tools",
     },
     {
       title: "Work alongside it.",
-      body: "Delegate, review progress, and give direction as the System works toward the outcome.",
+      body: "Hand it the work the way you would to a trusted colleague. Check in on progress, give direction when it matters, and let it ask when it's unsure. It works beside your team, not instead of it.",
       visual: "Team collaboration",
+    },
+    {
+      title: "It keeps learning.",
+      body: "Every outcome it carries becomes part of your company brain. It remembers what worked, what didn't, and why, so each new project starts a little wiser than the last.",
+      visual: "A brain that keeps growing",
     },
   ],
   closing: {

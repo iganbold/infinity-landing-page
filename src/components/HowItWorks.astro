@@ -2,10 +2,26 @@
 import { howItWorks as h } from "@/content/site";
 
 /** One Hairline figure per step (public/hairline/<name>.js), in step order. */
-const FIGURES = ["target", "dock", "table"];
+const FIGURES = ["outcome", "dock", "table", "learn"];
+/**
+ * Backdrop behind each figure card, one per step: forest floor → woodland →
+ * vista → panorama, a zoom-out from the ground to the horizon as the steps
+ * widen in scope. WebP first, JPEG where WebP isn't supported.
+ */
+const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].map((n) => `/primitives/${n}`);
 ---
 
 <section class="how" id="how-it-works" aria-labelledby="how-title">
+  <!-- Shared by every figure: the gradient the System's infinity mark is filled with. -->
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <defs>
+      <linearGradient id="hl-mark-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f2b84b"></stop>
+        <stop offset="0.5" stop-color="#8fc773"></stop>
+        <stop offset="1" stop-color="#2f7a55"></stop>
+      </linearGradient>
+    </defs>
+  </svg>
   <div class="frame">
     <header class="head">
       <h2 id="how-title" class="title" data-reveal>{h.title}</h2>
@@ -16,10 +32,17 @@ const FIGURES = ["target", "dock", "table"];
       {
         h.steps.map((step, i) => (
           <li class:list={["step", { "step--flip": i % 2 === 1 }]}>
-            <figure class="visual" data-reveal>
-              <div class="hl-stage" data-hairline-slot={FIGURES[i]} />
-              <span class="v-read mono" aria-hidden="true" data-hairline-read={FIGURES[i]} />
-              <figcaption class="v-cap">{step.visual}</figcaption>
+            <figure class="visual" data-reveal data-parallax-panel>
+              <span
+                class="v-bg"
+                aria-hidden="true"
+                style={`background-image: image-set(url(${BACKDROPS[i]}.webp) type("image/webp"), url(${BACKDROPS[i]}.jpg) type("image/jpeg"))`}
+              />
+              <div class="hl-card">
+                <div class="hl-stage" data-hairline-slot={FIGURES[i]} />
+                <span class="v-read mono" aria-hidden="true" data-hairline-read={FIGURES[i]} />
+                <figcaption class="v-cap">{step.visual}</figcaption>
+              </div>
             </figure>
             <div class="text" data-reveal style="--d:1">
               <span class="n mono">{String(i + 1).padStart(2, "0")}</span>
@@ -50,6 +73,34 @@ const FIGURES = ["target", "dock", "table"];
   figure into its panel and starts its tour; the figures are modules, so they
   run after both, in order.
 -->
+<script>
+  // Parallax: each card's backdrop drifts against the scroll, so the white card
+  // seems to float above it. Only panels on screen are updated, once per frame.
+  const panels = [...document.querySelectorAll<HTMLElement>("[data-parallax-panel]")];
+  if (panels.length && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const live = new Set<HTMLElement>();
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const vh = innerHeight;
+      for (const el of live) {
+        const r = el.getBoundingClientRect();
+        // -1 when the panel's middle is at the bottom of the screen, 1 at the top
+        const t = Math.max(-1, Math.min(1, (vh / 2 - (r.top + r.height / 2)) / (vh / 2 + r.height / 2)));
+        (el.firstElementChild as HTMLElement).style.transform = `translate3d(0, ${(t * r.height * 0.18).toFixed(1)}px, 0)`;
+      }
+    };
+    const kick = () => { if (!raf && live.size) raf = requestAnimationFrame(update); };
+    const io = new IntersectionObserver((es) => {
+      for (const e of es) e.isIntersecting ? live.add(e.target as HTMLElement) : live.delete(e.target as HTMLElement);
+      kick();
+    });
+    panels.forEach((el) => io.observe(el));
+    addEventListener("scroll", kick, { passive: true });
+    addEventListener("resize", kick, { passive: true });
+  }
+</script>
+
 <script is:inline src="/hairline/kernel.js"></script>
 <script is:inline>
   (() => {
@@ -167,50 +218,74 @@ const FIGURES = ["target", "dock", "table"];
     color: var(--ink-mid);
   }
 
-  /* Figure panel: a flat forest ground, so the figure's plates (filled with
-     the ground colour) sit seamlessly on it. */
+  /* Figure panel: an image backdrop framing a white card that holds the
+     figure. The card is a flat colour so the figure's plates (filled with the
+     ground colour) sit seamlessly on it. */
   .visual {
     position: relative;
-    display: grid;
-    place-items: center;
     margin: 0;
-    aspect-ratio: 5 / 4;
+    padding: clamp(14px, 2.6vw, 30px);
     border-radius: 28px;
     overflow: hidden;
+    isolation: isolate;
     background: #1a3326;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.07),
-      0 36px 70px -40px rgba(20, 45, 30, 0.55);
+    box-shadow: 0 36px 70px -40px rgba(20, 45, 30, 0.55);
   }
-  /* The figure's palette: light strokes on forest green. */
+  /* The backdrop: taller than the panel so it can drift with the scroll. */
+  .v-bg {
+    position: absolute;
+    inset: -22% 0;
+    z-index: -1;
+    background: center 62% / cover no-repeat;
+    will-change: transform;
+  }
+  .hl-card {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow:
+      inset 0 0 0 1px rgba(28, 69, 24, 0.08),
+      0 24px 50px -24px rgba(5, 15, 10, 0.55);
+  }
+  /* The figure's palette: forest-green strokes on white. */
   .hl-stage {
     width: 100%;
-    --hairline-plate: #1a3326;
-    --hairline-hi: #eaf6cc;
-    --hairline-edge: #a3c2a8;
-    --hairline-mid: #648d70;
-    --hairline-lo: #3d604a;
+    --hairline-plate: #ffffff;
+    --hairline-hi: #1c4518;
+    --hairline-edge: #7f9884;
+    --hairline-mid: #b3c3b6;
+    --hairline-lo: #dbe4dc;
     --hairline-stroke: 1;
   }
+  /* The System's mark: gradient-filled top face and a soft lift shadow. The
+     figures stay line-only; this is the page dressing the one tagged shape. */
+  .hl-stage :global(.mark) {
+    filter: drop-shadow(0 5px 7px rgba(28, 69, 24, 0.24));
+  }
+  .hl-stage :global(.mark .face) {
+    fill: url(#hl-mark-grad);
+  }
+
   .v-read {
     position: absolute;
-    top: 24px;
-    right: 22px;
+    top: 20px;
+    right: 20px;
     font-size: 11.5px;
     letter-spacing: 0.04em;
-    color: rgba(234, 246, 204, 0.75);
+    color: #7f9884;
     pointer-events: none;
     font-variant-numeric: tabular-nums;
   }
   /* Top corners: caption left, read-out right, clear of the drawing. */
   .v-cap {
     position: absolute;
-    left: 24px;
-    top: 18px;
-    font-size: clamp(16px, 1.4vw, 20px);
+    left: 20px;
+    top: 15px;
+    font-size: clamp(14px, 1.2vw, 17px);
     font-weight: 500;
     letter-spacing: -0.02em;
-    color: rgba(255, 255, 255, 0.9);
+    color: #16150f;
     pointer-events: none;
   }
 
