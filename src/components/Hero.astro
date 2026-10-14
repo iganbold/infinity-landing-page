@@ -231,10 +231,28 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     line-height: 1.02;
     letter-spacing: -0.03em;
     color: var(--cream);
+    position: relative;
     text-shadow:
       0 2px 12px rgba(0, 0, 0, 0.55),
-      0 12px 70px rgba(0, 0, 0, 0.78),
-      0 0 160px rgba(0, 0, 0, 0.62);
+      0 10px 32px rgba(0, 0, 0, 0.55);
+  }
+  /* The wide dark halo behind the headline. Drawn as a gradient, not as 70–160px
+     text-shadows: those took ~20ms of GPU raster every time the hero scrolled
+     back into view, so flinging up to the top stuttered. */
+  .display::before {
+    content: "";
+    position: absolute;
+    inset: -0.9em -1.3em;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.36), rgba(0, 0, 0, 0.22) 50%, rgba(0, 0, 0, 0.07) 78%, transparent);
+    opacity: 0;
+    animation: halo-in 1.4s var(--ease) 150ms forwards;
+  }
+  @keyframes halo-in {
+    to {
+      opacity: 1;
+    }
   }
 
   .line {
@@ -270,11 +288,20 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     font-size: 16px;
     line-height: 1.6;
     color: #ffffff;
+    position: relative;
     text-shadow:
       0 1px 3px rgba(0, 0, 0, 0.9),
       0 2px 12px rgba(0, 0, 0, 0.85),
-      0 6px 36px rgba(0, 0, 0, 0.9),
-      0 0 90px rgba(0, 0, 0, 0.75);
+      0 6px 36px rgba(0, 0, 0, 0.9);
+  }
+  /* Its wide halo, as a gradient for the same reason as the headline's. */
+  .lead::before {
+    content: "";
+    position: absolute;
+    inset: -40px -70px;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.14) 55%, transparent);
   }
 
   /* Solid pill button: the one opaque shape on the page. */

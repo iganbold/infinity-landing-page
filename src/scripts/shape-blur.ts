@@ -213,7 +213,7 @@ const locate = (gl: WebGL2RenderingContext, program: WebGLProgram, names: string
   return map;
 };
 
-function createRenderer(canvas: HTMLCanvasElement, image: HTMLImageElement, look: Look) {
+function createRenderer(canvas: HTMLCanvasElement, image: TexImageSource, look: Look) {
   const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false });
   if (!gl) return null;
 
@@ -478,9 +478,14 @@ export function mountShapeBlur(host: HTMLElement, options: ShapeBlurOptions) {
   const start = () => {
     image = new Image();
     image.decoding = "async";
-    image.onload = () => {
+    image.onload = async () => {
       if (!image) return;
-      renderer = createRenderer(canvas, image, look);
+      // Decode off the main thread first: uploading the <img> itself decodes it
+      // synchronously (~25ms), a hitch whenever the cursor lands on a photo mid-scroll.
+      const bitmap = await createImageBitmap(image).catch(() => null);
+      if (!image) return bitmap?.close();
+      renderer = createRenderer(canvas, bitmap ?? image, look);
+      bitmap?.close();
       size();
       wake();
     };
