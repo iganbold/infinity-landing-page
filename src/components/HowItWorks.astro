@@ -1,8 +1,13 @@
 ---
 import { howItWorks as h } from "@/content/site";
 
-/** One Hairline figure per step (public/hairline/<name>.js), in step order. */
-const FIGURES = ["outcome", "dock", "table", "learn"];
+/** One figure per step (scripts/figures.ts), in step order, with what it shows for screen readers. */
+const FIGURES = [
+  { name: "outcome", means: "Three rings around one centre: the outcome to achieve, a gauge for how success is measured, and a dashed boundary marking the System's role." },
+  { name: "dock", means: "The System learns from what the team knows, how it works and its tools, and its reach spreads across the organization to every corner." },
+  { name: "table", means: "The team and the System on side-by-side tracks, joined by four moves: hand off, check in, the System asks, and the team gives direction." },
+  { name: "learn", means: "A chain of projects, each starting higher than the last, with what worked and what didn't collected in the company brain." },
+];
 /**
  * Backdrop behind each figure card, one per step: forest floor → woodland →
  * vista → panorama, a zoom-out from the ground to the horizon as the steps
@@ -12,16 +17,6 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
 ---
 
 <section class="how" id="how-it-works" aria-labelledby="how-title">
-  <!-- Shared by every figure: the gradient the System's infinity mark is filled with. -->
-  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
-    <defs>
-      <linearGradient id="hl-mark-grad" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#f2b84b"></stop>
-        <stop offset="0.5" stop-color="#8fc773"></stop>
-        <stop offset="1" stop-color="#2f7a55"></stop>
-      </linearGradient>
-    </defs>
-  </svg>
   <div class="frame">
     <header class="head">
       <h2 id="how-title" class="title" data-reveal>{h.title}</h2>
@@ -38,10 +33,19 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
                 aria-hidden="true"
                 style={`background-image: image-set(url(${BACKDROPS[i]}.webp) type("image/webp"), url(${BACKDROPS[i]}.jpg) type("image/jpeg"))`}
               />
-              <div class="hl-card">
-                <div class="hl-stage" data-hairline-slot={FIGURES[i]} />
-                <span class="v-read mono" aria-hidden="true" data-hairline-read={FIGURES[i]} />
-                <figcaption class="v-cap">{step.visual}</figcaption>
+              <span class="v-lens" aria-hidden="true" data-shape-blur={`${BACKDROPS[i]}.webp`} />
+              <div class="fig-card">
+                <div class="fig-paper">
+                  <div class="v-head">
+                    <figcaption class="v-cap">{step.visual}</figcaption>
+                    <span class="v-status" aria-hidden="true">
+                      <span class="v-dot" />
+                      <span class="v-read" />
+                    </span>
+                  </div>
+                  <div class="fig-stage" role="img" aria-label={FIGURES[i].means} data-figure={FIGURES[i].name} />
+                  <div class="v-rail" />
+                </div>
               </div>
             </figure>
             <div class="text" data-reveal style="--d:1">
@@ -67,14 +71,21 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
   </div>
 </section>
 
-<!--
-  Hairline figures (isometric line drawings that answer the pointer).
-  The kernel is a classic script exposing HL; the host below mounts each
-  figure into its panel and starts its tour; the figures are modules, so they
-  run after both, in order.
--->
 <script>
-  // Parallax: each card's backdrop drifts against the scroll, so the white card
+  import { mountFigure, type FigureName } from "@/scripts/figures";
+  import { mountShapeBlur } from "@/scripts/shape-blur";
+
+  // Figures: filled 2D graphs that tour their states and answer the pointer;
+  // each writes its status into the line above it and keeps the rail below.
+  document.querySelectorAll<HTMLElement>("[data-figure]").forEach((stage) => {
+    const paper = stage.parentElement!;
+    mountFigure(stage, stage.dataset.figure as FigureName, {
+      readout: paper.querySelector<HTMLElement>(".v-read"),
+      rail: paper.querySelector<HTMLElement>(".v-rail"),
+    });
+  });
+
+  // Parallax: each card's backdrop drifts against the scroll, so the card
   // seems to float above it. Only panels on screen are updated, once per frame.
   const panels = [...document.querySelectorAll<HTMLElement>("[data-parallax-panel]")];
   if (panels.length && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -99,36 +110,31 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
     addEventListener("scroll", kick, { passive: true });
     addEventListener("resize", kick, { passive: true });
   }
+
+  // Shape blur on the backdrop: hovering the photo blurs it in a rect around
+  // the card, sharp at the card's edge and softer toward the panel's, most
+  // under the pointer. The card stays crisp; the host sits under it, so only
+  // the exposed photo answers the hover.
+  if (matchMedia("(hover: hover)").matches) {
+    document.querySelectorAll<HTMLElement>("[data-shape-blur]").forEach((el) => {
+      const panel = el.parentElement!;
+      mountShapeBlur(el, {
+        src: el.dataset.shapeBlur!,
+        // Redraw the photo exactly where the parallax layer has it (.v-bg).
+        box: panel.querySelector<HTMLElement>(".v-bg")!,
+        position: [0.5, 0.62],
+        core: panel.querySelector<HTMLElement>(".fig-card")!,
+        radius: 20,
+        blur: 14,
+        lensSize: 0.4,
+        lensSoftness: 0.8,
+        rest: 0.45,
+        chroma: 0.4,
+      });
+    });
+  }
 </script>
 
-<script is:inline src="/hairline/kernel.js"></script>
-<script is:inline>
-  (() => {
-    const stages = new WeakSet();
-    window.hairline = (figure) => {
-      const stage = document.querySelector(`[data-hairline-slot="${figure.name}"]`);
-      if (!stage || stages.has(stage)) return;
-      stages.add(stage);
-      HL.inject(document);
-      stage.setAttribute("data-hairline", figure.name);
-      stage.setAttribute("role", "img");
-      stage.setAttribute("aria-label", figure.means);
-      const svg = HL.mk("svg", { viewBox: "0 0 400 320", "aria-hidden": "true" }, stage);
-      const out = document.querySelector(`[data-hairline-read="${figure.name}"]`);
-      let text = "";
-      const read = {
-        get textContent() { return text; },
-        set textContent(v) { text = v == null ? "" : String(v); if (out) out.textContent = text; },
-      };
-      // the figure's own default: the middle of its range
-      figure.mount({ stage, svg, read }, figure.range[1]);
-      if (!text) read.textContent = "rest";
-      // an unseen pointer walks the figure's tour until a real one arrives, and resumes after it leaves
-      HL.tour(stage, figure.tour || HL.LAP);
-    };
-  })();
-</script>
-{FIGURES.map((name) => <script is:inline type="module" src={`/hairline/${name}.js`} />)}
 
 <style>
   .how {
@@ -219,8 +225,7 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
   }
 
   /* Figure panel: an image backdrop framing a white card that holds the
-     figure. The card is a flat colour so the figure's plates (filled with the
-     ground colour) sit seamlessly on it. */
+     figure. */
   .visual {
     position: relative;
     margin: 0;
@@ -239,54 +244,160 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
     background: center 62% / cover no-repeat;
     will-change: transform;
   }
-  .hl-card {
+  /* Hover target for the shape blur: covers the panel under the card, so the
+     pointer only reaches it on the exposed photo. Its canvas redraws the photo
+     blurred over the CSS one, and fades in on hover. */
+  .v-lens {
+    position: absolute;
+    inset: 0;
+  }
+  .v-lens :global(canvas) {
+    opacity: 0;
+    transition: opacity 500ms var(--ease);
+  }
+  .v-lens:hover :global(canvas) {
+    opacity: 1;
+  }
+  /* The card: a frosted rim that takes its tint from the photo, holding a
+     paper sheet with the caption and status, the figure, and its rail. */
+  .fig-card {
     position: relative;
-    border-radius: 20px;
-    overflow: hidden;
-    background: #ffffff;
+    padding: 7px;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    backdrop-filter: blur(14px) saturate(1.15);
     box-shadow:
-      inset 0 0 0 1px rgba(28, 69, 24, 0.08),
-      0 24px 50px -24px rgba(5, 15, 10, 0.55);
+      inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      0 30px 60px -28px rgba(8, 24, 15, 0.65);
   }
-  /* The figure's palette: forest-green strokes on white. */
-  .hl-stage {
-    width: 100%;
-    --hairline-plate: #ffffff;
-    --hairline-hi: #1c4518;
-    --hairline-edge: #7f9884;
-    --hairline-mid: #b3c3b6;
-    --hairline-lo: #dbe4dc;
-    --hairline-stroke: 1;
-  }
-  /* The System's mark: gradient-filled top face and a soft lift shadow. The
-     figures stay line-only; this is the page dressing the one tagged shape. */
-  .hl-stage :global(.mark) {
-    filter: drop-shadow(0 5px 7px rgba(28, 69, 24, 0.24));
-  }
-  .hl-stage :global(.mark .face) {
-    fill: url(#hl-mark-grad);
+  .fig-paper {
+    position: relative;
+    border-radius: 19px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #ffffff 55%, #f8faf7 100%);
+    box-shadow:
+      0 1px 2px rgba(18, 40, 26, 0.14),
+      0 10px 24px -14px rgba(18, 40, 26, 0.35);
   }
 
-  .v-read {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 11.5px;
-    letter-spacing: 0.04em;
-    color: #7f9884;
-    pointer-events: none;
-    font-variant-numeric: tabular-nums;
+  .v-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding: 18px 20px 0;
   }
-  /* Top corners: caption left, read-out right, clear of the drawing. */
   .v-cap {
-    position: absolute;
-    left: 20px;
-    top: 15px;
     font-size: clamp(14px, 1.2vw, 17px);
     font-weight: 500;
     letter-spacing: -0.02em;
-    color: #16150f;
+    color: #17201a;
+  }
+  /* Live status: what the System is doing in the state on show. */
+  .v-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
     pointer-events: none;
+  }
+  .v-read {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: #4b5a4f;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .v-dot {
+    position: relative;
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2f7a55;
+  }
+  .v-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(47, 122, 85, 0.45);
+    animation: v-beat 2.4s var(--ease) infinite;
+  }
+  @keyframes v-beat {
+    from {
+      transform: scale(0.5);
+      opacity: 1;
+    }
+    to {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+
+  .fig-stage {
+    width: 100%;
+  }
+  .fig-stage :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The rail: one segment per state. Past ones are filled, the one on show
+     fills green while the tour holds it (--p, set by figures.ts). */
+  .v-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 6px;
+    padding: 0 20px 12px;
+  }
+  .v-rail :global(button) {
+    position: relative;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+  }
+  .v-rail :global(button)::before,
+  .v-rail :global(i) {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 3px;
+    margin-top: -1.5px;
+    border-radius: 3px;
+  }
+  .v-rail :global(button)::before {
+    background: #e3e8e2;
+    transition: background 180ms ease;
+  }
+  .v-rail :global(i) {
+    background: #8a978d;
+    transform: scaleX(var(--p, 0));
+    transform-origin: left center;
+  }
+  .v-rail :global(button.on i) {
+    background: #2f7a55;
+  }
+  .v-rail :global(button:focus-visible) {
+    outline: 2px solid #2f7a55;
+    outline-offset: 1px;
+  }
+  @media (hover: hover) {
+    .v-rail :global(button:hover)::before {
+      background: #c2cbc3;
+    }
   }
 
   /* ------------------------------------------------ closing */
@@ -345,6 +456,13 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
   }
   .closing-cta:hover svg {
     transform: translate(2px, -2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .v-dot::after {
+      animation: none;
+      opacity: 0;
+    }
   }
 
   @media (max-width: 860px) {

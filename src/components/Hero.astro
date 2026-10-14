@@ -20,7 +20,8 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
   <div class="fade" aria-hidden="true"></div>
 
   <div class="stage frame">
-    <!-- The loop and the copy share one box, so the copy lines up with the curve at any width. -->
+    <!-- The loop and the headline share one box, so the headline sits in the curve at any width.
+         The description sits under the loop, clear of its glow. -->
     <div class="comp">
       <div class="loop-wrap" aria-hidden="true">
         <svg class="loop gl-fallback" viewBox={`-40 -40 ${W + 80} ${H + 80}`}>
@@ -54,10 +55,10 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
             ))
           }
         </h1>
-        <p class="lead" data-reveal style="--d:2">{hero.subtitle}</p>
         </div>
       </div>
     </div>
+    <p class="lead" data-reveal style="--d:2" data-parallax-text>{hero.subtitle}</p>
     <a href={hero.cta.href} class="cta" data-reveal style="--d:3" data-parallax-text>
       {hero.cta.label}
       <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"
@@ -155,18 +156,18 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     inset: 0;
     pointer-events: none;
   }
-  /* Shrinks to the title's width so the description lines up with it. */
   .copy-inner {
     display: grid;
     justify-items: center;
     width: max-content;
     max-width: 100%;
   }
-  /* Copy sits on the curve's bottom edge, centered. */
+  /* Headline sits low in the loop, just above the curve's bottom edge, so it
+     leans toward the description under the loop. */
   .copy {
     position: absolute;
     left: 50%;
-    bottom: 8.333%;
+    bottom: 15%;
     z-index: 1;
     display: grid;
     justify-items: center;
@@ -259,13 +260,12 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     }
   }
 
+  /* Under the loop, over the darker hills, where it reads clearly. */
   .lead {
-    /* Takes exactly the title's width (see .copy-inner). */
-    width: 0;
-    min-width: 100%;
-    margin-top: clamp(16px, 2.2vh, 22px);
+    max-width: 34em;
+    margin-top: 4px;
     text-wrap: pretty;
-    font-size: clamp(14px, 1.05vw, 16px);
+    font-size: 16px;
     line-height: 1.6;
     color: #ffffff;
     text-shadow:
@@ -281,7 +281,7 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-top: 6px;
+    margin-top: 22px;
     padding: 0 22px;
     height: 48px;
     font-size: 15px;
@@ -345,14 +345,14 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
       aspect-ratio: 1180 / 480;
       transform: translate(-50%, -50%);
     }
-    /* Phones: the title is narrow, so the description uses the full width. */
+    /* Phones: the title wraps to the screen. */
     .copy-inner {
       width: auto;
     }
     .lead {
-      width: auto;
-      min-width: 0;
       max-width: 36ch;
+      margin-top: clamp(16px, 2.2vh, 22px);
+      font-size: clamp(14px, 1.05vw, 16px);
       text-wrap: balance;
     }
     .copy {

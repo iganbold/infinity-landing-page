@@ -53,24 +53,51 @@ const parts = segs.map((seg, i) => {
 
     <hr class="rule" data-reveal style="--d:2" />
 
-    <!-- Chatbots, Agents, Systems. The last item is the product, so it's filled. -->
-    <ol class="compare" aria-label="Chatbots, agents, and Systems compared">
-      {
-        w.compare.map((c, i) => (
-          <li class:list={["step", { "step--on": i === w.compare.length - 1 }]} data-reveal style={`--d:${3 + i}`}>
-            {i === w.compare.length - 1 && (
-              <>
-                <span class="glow" aria-hidden="true" />
-                <span class="glow-ring" aria-hidden="true" />
-              </>
-            )}
-            <span class="step-head">{c.name}</span>
-            <h3 class="step-title">{c.title}</h3>
-            <p class="step-body">{c.body}</p>
-          </li>
-        ))
-      }
-    </ol>
+    <!-- Chatbots, Agents, Systems as a comparison: one column each, the same
+         rows across. Each column is a list item holding its own labelled
+         values (so it reads on its own); the label column on the left is only
+         visual. The last column is the product, so it's filled. -->
+    <div class="compare-wrap">
+      <div class="labels" aria-hidden="true">
+        <span class="cell cell--head"></span>
+        {Object.values(w.compareRows).map((label) => <span class="cell label">{label}</span>)}
+      </div>
+      <ol class="compare" aria-label="Chatbots, agents, and Systems compared">
+        {
+          w.compare.map((c, i) => (
+            <li class:list={["step", { "step--on": i === w.compare.length - 1 }]} data-reveal style={`--d:${3 + i}`}>
+              {i === w.compare.length - 1 && (
+                <>
+                  <span class="glow" aria-hidden="true" />
+                  <span class="glow-ring" aria-hidden="true" />
+                </>
+              )}
+              <span class="cell cell--head step-head">{c.name}</span>
+              <dl class="rows">
+                <div class="cell">
+                  <dt class="row-label">{w.compareRows.title}</dt>
+                  <dd class="step-title">{c.title}</dd>
+                </div>
+                <div class="cell">
+                  <dt class="row-label">{w.compareRows.body}</dt>
+                  <dd class="step-body">{c.body}</dd>
+                </div>
+                <div class="cell">
+                  <dt class="row-label">{w.compareRows.span}</dt>
+                  <dd class="step-span">{c.span}</dd>
+                </div>
+                <div class="cell">
+                  <dt class="row-label">{w.compareRows.level}</dt>
+                  <dd class="meter" role="img" aria-label={`${c.level} of ${w.compare.length}`}>
+                    {w.compare.map((_, k) => <i class:list={{ on: k < c.level }} />)}
+                  </dd>
+                </div>
+              </dl>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
   </div>
 </section>
 
@@ -187,39 +214,87 @@ const parts = segs.map((seg, i) => {
 
   /* ------------------------------------------------ comparison */
 
-  .compare {
+  /* One white table: a label column and three product columns. Every column
+     spans the same five rows (subgrid), so values line up across. */
+  .compare-wrap {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .step {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    display: grid;
-    align-content: start;
-    gap: 10px;
-    padding: clamp(22px, 2.4vw, 32px);
+    grid-template-columns: minmax(120px, 0.55fr) repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(5, auto);
     border-radius: 22px;
     background: #ffffff;
     box-shadow:
       inset 0 0 0 1px rgba(22, 21, 15, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      0 18px 40px -30px rgba(30, 50, 35, 0.3);
+  }
+  .labels,
+  .compare,
+  .step,
+  .rows {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: 1 / -1;
+  }
+  .compare {
+    grid-column: 2 / -1;
+    grid-template-columns: subgrid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rows {
+    grid-row: 2 / -1;
+    margin: 0;
+  }
+  .cell dd {
+    margin: 0;
+  }
+  .cell {
+    display: grid;
+    align-content: center;
+    padding: 16px clamp(18px, 2vw, 28px);
+    border-top: 1px solid rgba(22, 21, 15, 0.07);
+  }
+  .cell--head {
+    align-content: end;
+    padding-top: clamp(22px, 2.4vw, 30px);
+    padding-bottom: 14px;
+    border-top: 0;
+  }
+  .label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #8a978d;
+  }
+  .step {
+    position: relative;
+    isolation: isolate;
+  }
+  /* A hairline between the product columns. */
+  .step:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    left: 0;
+    width: 1px;
+    background: rgba(22, 21, 15, 0.07);
+  }
+  /* The labels live in the left column on wide screens. */
+  .row-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .step-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: clamp(18px, 2.4vw, 36px);
     font-size: 14px;
     font-weight: 500;
     color: #57544a;
   }
   .step-title {
-    font-size: clamp(22px, 2vw, 30px);
+    font-size: clamp(20px, 1.8vw, 28px);
     font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.025em;
@@ -230,8 +305,33 @@ const parts = segs.map((seg, i) => {
     line-height: 1.5;
     color: #57544a;
   }
-  /* Systems: the brand card. Same green and dot texture as the highlight. */
+  .step-span {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink-dark);
+  }
+  /* Ownership: three segments, filled up to the level. */
+  .meter {
+    display: flex;
+    gap: 5px;
+  }
+  .meter i {
+    width: 22px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(22, 21, 15, 0.1);
+  }
+  .meter i.on {
+    background: #2f7a55;
+  }
+
+  /* Systems: the brand column, standing a little proud of the table like a
+     recommended plan. Same green and dot texture as the highlight. */
   .step--on {
+    margin: -10px 0;
+    padding: 10px 0;
+    border-radius: 20px;
+    overflow: hidden;
     background-color: #2f7a55;
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.16) 1px, transparent 1.4px);
     background-size: 7px 7px;
@@ -239,6 +339,25 @@ const parts = segs.map((seg, i) => {
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.25),
       0 18px 40px -18px rgba(31, 90, 60, 0.6);
+  }
+  .step--on::before {
+    display: none;
+  }
+  .step--on .cell {
+    border-top-color: rgba(255, 255, 255, 0.16);
+  }
+  .step--on .cell--head {
+    border-top: 0;
+  }
+  .step--on .step-span,
+  .step--on .step-title {
+    color: #ffffff;
+  }
+  .step--on .meter i {
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .step--on .meter i.on {
+    background: #ffffff;
   }
   .step--on .step-head,
   .step--on .step-body {
@@ -306,12 +425,61 @@ const parts = segs.map((seg, i) => {
     .card {
       border-radius: 24px;
     }
+    /* Phones: the columns stack as cards, each with its own row labels. */
+    .compare-wrap {
+      display: block;
+      background: none;
+      box-shadow: none;
+    }
+    .labels {
+      display: none;
+    }
+    .compare,
+    .step,
+    .rows {
+      display: grid;
+      grid-row: auto;
+      grid-template-rows: none;
+      grid-template-columns: none;
+    }
     .compare {
-      grid-template-columns: 1fr;
       gap: 12px;
     }
-    .step-head {
-      margin-bottom: 10px;
+    .step {
+      border-radius: 20px;
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(22, 21, 15, 0.06);
+    }
+    .step:not(:first-child)::before {
+      display: none;
+    }
+    .step--on {
+      margin: 0;
+      padding: 0;
+      background-color: #2f7a55;
+    }
+    .cell {
+      grid-template-columns: 7.5rem 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+    }
+    .cell--head {
+      padding-top: 20px;
+    }
+    .row-label {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+      white-space: normal;
+      font-size: 13px;
+      font-weight: 500;
+      color: #8a978d;
+    }
+    .step--on .row-label {
+      color: rgba(255, 255, 255, 0.7);
     }
   }
 </style>

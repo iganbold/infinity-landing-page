@@ -1,0 +1,655 @@
+---
+/**
+ * The preview graphic on one Organizational Harness tile: one still picture
+ * of the idea, a few words at most, in the figures' moss ink and greens. Each
+ * is drawn at a fixed natural size; scripts/harness.ts shrinks it to fit its
+ * tile. The detail view (HarnessDetail.astro) carries the full product view.
+ */
+import { MARK } from "@/lib/mark";
+
+interface Props {
+  name: string;
+}
+const { name } = Astro.props;
+
+const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6a2.5 2.5 0 0 1 5 0V5";
+---
+
+{
+  name === "credentials" && (
+    <div class="ha cred">
+      <span class="cr-chip">
+        <small>Agent holds</small>
+        <code>ghp_proxy_…</code>
+      </span>
+      <span class="cr-lock">
+        <svg width="12" height="14" viewBox="0 0 11 13" aria-hidden="true">
+          <path d={LOCK} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+        </svg>
+      </span>
+      <span class="cr-chip cr-chip--out">
+        <small>API receives</small>
+        <code>ghp_••••••</code>
+      </span>
+    </div>
+  )
+}
+
+{
+  name === "sandbox" && (
+    <div class="ha sbx">
+      <span class="sbx-box">
+        <span class="sys">
+          <svg width="22" height="14" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
+        </span>
+      </span>
+      <ul class="sbx-out">
+        {["Platform", "Database", "Keys"].map((o) => (
+          <li>
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+              <circle cx="7" cy="7" r="6.4" fill="#fff" />
+              <path d="M4.8 4.8l4.4 4.4m0-4.4l-4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+            {o}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+{
+  name === "checks" && (
+    <ul class="ha verdicts">
+      <li><code>post_message</code><b class="v v--ok">Allowed</b></li>
+      <li><code>create_issue</code><b class="v v--ok">Allowed</b></li>
+      <li><code>web.fetch</code><b class="v v--no">Denied</b></li>
+      <li><code>merge_pr</code><b class="v v--wait">Review</b></li>
+      <li><code>export_all</code><b class="v v--no">Denied</b></li>
+    </ul>
+  )
+}
+
+{
+  name === "deployment" && (
+    <div class="ha dep">
+      <span class="dep-edge">Cloudflare</span>
+      <svg class="dep-arrow" width="22" height="12" viewBox="0 0 22 12" aria-hidden="true">
+        <path d="M1 6h19M15 1.5L20 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span class="dep-wall">
+        {["Agents", "Data", "Keys"].map((c) => <span><i />{c}</span>)}
+      </span>
+    </div>
+  )
+}
+
+{
+  name === "access" && (
+    <div class="ha chain">
+      <span class="node">
+        <span class="av">ST</span>
+        Support team
+      </span>
+      <span class="link"><i /></span>
+      <span class="node">
+        <span class="av av--agent">
+          <svg width="16" height="10" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
+        </span>
+        Infinity Agent
+      </span>
+      <span class="link"><i /></span>
+      <span class="node">
+        <span class="av av--key">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <circle cx="4.6" cy="7" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path d="M7.4 7H13M11 7v2.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </span>
+        GitHub
+      </span>
+    </div>
+  )
+}
+
+{
+  name === "brain" && (
+    <ul class="ha tree">
+      <li><code>handbook/</code><em>Read</em></li>
+      <li><code>tickets/</code><em class="yes">Read &amp; write</em></li>
+      <li><code>playbooks/</code><em class="yes">Read &amp; write</em></li>
+      <li class="off">
+        <code>finance/</code>
+        <em>
+          <svg width="11" height="13" viewBox="0 0 11 13" aria-hidden="true">
+            <path d={LOCK} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+          </svg>
+          Hidden
+        </em>
+      </li>
+    </ul>
+  )
+}
+
+{
+  name === "budgets" && (
+    <ul class="ha budget">
+      <li style="--p:0.32"><span>Support lead</span><i /></li>
+      <li style="--p:0.86" class="hot"><span>Analyst</span><i /></li>
+      <li style="--p:0.36"><span>Guest</span><i /></li>
+    </ul>
+  )
+}
+
+{
+  name === "audit" && (
+    <ul class="ha audit">
+      <li><code>connection.use</code><time>14:02</time></li>
+      <li><code>tool.invoke</code><time>14:02</time></li>
+      <li><code>grant_request</code><time>13:58</time></li>
+    </ul>
+  )
+}
+
+{
+  name === "models" && (
+    <ul class="ha models">
+      <li><i />Included models</li>
+      <li class="on"><i />Anthropic API key</li>
+      <li><i />ChatGPT subscription</li>
+    </ul>
+  )
+}
+
+{
+  name === "skills" && (
+    <div class="ha skills">
+      <span class="sk-card sk-card--back2" />
+      <span class="sk-card sk-card--back1" />
+      <span class="sk-card">
+        <svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true">
+          <path d="M2.5 1.5h6l3 3v10h-9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+          <path d="M5 8h4M5 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+        </svg>
+        <code>release-notes</code>
+        <b class="ver">v1.3</b>
+      </span>
+    </div>
+  )
+}
+
+{
+  name === "surfaces" && (
+    <div class="ha srf">
+      <ul class="srf-in">
+        {["Slack", "Discord", "Web chat", "Scheduled job"].map((s) => <li><i />{s}</li>)}
+      </ul>
+      <svg class="srf-arrow" width="30" height="12" viewBox="0 0 30 12" aria-hidden="true">
+        <path d="M1 6h27M23 1.5L28 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span class="srf-agent">
+        <svg width="18" height="12" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
+        Infinity Agent
+      </span>
+    </div>
+  )
+}
+
+<style>
+  /* Every preview has a fixed natural size; nothing wraps. */
+  .ha {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 13px;
+    line-height: 1.3;
+    white-space: nowrap;
+    color: var(--moss);
+  }
+  .ha code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0;
+  }
+  .ha em {
+    font-style: normal;
+    font-weight: 500;
+    color: var(--moss-3);
+  }
+  .ha em.yes {
+    color: var(--deep);
+  }
+  .mark {
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 3.6;
+    stroke-linecap: round;
+  }
+
+  /* Credentials: what the agent holds, what the API gets. */
+  .cred {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+  }
+  .cr-chip {
+    display: grid;
+    gap: 4px;
+    padding: 11px 14px;
+    border-radius: 13px;
+    background: var(--wash);
+  }
+  .cr-chip small {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--moss-3);
+  }
+  .cr-chip code {
+    color: var(--deep);
+  }
+  .cr-chip--out {
+    background: var(--moss);
+  }
+  .cr-chip--out small {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .cr-chip--out code {
+    color: #ffffff;
+    letter-spacing: 0.04em;
+  }
+  /* The proxy between them: a lock on the line. */
+  .cr-lock {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 34px;
+    color: #ffffff;
+  }
+  .cr-lock::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 50%;
+    height: 1.6px;
+    background: var(--mid);
+  }
+  .cr-lock svg {
+    position: relative;
+    box-sizing: content-box;
+    padding: 9px 10px 9px 11px;
+    border-radius: 50%;
+    background: var(--deep);
+  }
+
+  /* Sandbox: a dashed boundary, cut off from what sits outside it. */
+  .sbx {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .sbx-box {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    border: 1.6px dashed var(--deep);
+    border-radius: 18px;
+    background: #ffffff;
+  }
+  .sys {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--deep);
+  }
+  .sbx-out {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .sbx-out li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 24px;
+    padding: 0 11px 0 5px;
+    border-radius: 999px;
+    font-weight: 500;
+    color: var(--moss-2);
+    background: var(--ghost);
+  }
+  .sbx-out svg {
+    color: var(--moss-3);
+  }
+
+  /* Deployment: one way in, through one wall. */
+  .dep {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dep-edge {
+    padding: 6px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffffff;
+    background: var(--moss);
+  }
+  .dep-arrow {
+    color: var(--moss);
+  }
+  .dep-wall {
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    border: 2px solid var(--deep);
+    border-radius: 15px;
+    background: #ffffff;
+  }
+  .dep-wall span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 92px;
+    height: 22px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-weight: 500;
+    background: var(--wash);
+  }
+  .dep-wall i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--deep);
+  }
+
+  /* Checks: tool calls on the green, each with its verdict. */
+  .verdicts {
+    display: grid;
+    gap: 7px;
+    width: 200px;
+  }
+  .verdicts li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 9px 8px 12px;
+    border-radius: 11px;
+    background: #ffffff;
+  }
+  .v {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .v--ok {
+    color: var(--deep);
+    background: var(--mist);
+  }
+  .v--no {
+    color: #ffffff;
+    background: var(--moss);
+  }
+  .v--wait {
+    color: var(--moss-2);
+    background: var(--ghost);
+  }
+
+  /* Access: who can use what, link by link. */
+  .chain {
+    display: flex;
+    align-items: center;
+  }
+  .node {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 13px 5px 5px;
+    border-radius: 999px;
+    font-weight: 500;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+  .link {
+    display: grid;
+    width: 30px;
+  }
+  .link i {
+    position: relative;
+    height: 1.6px;
+    background: var(--mid);
+  }
+  .link i::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: -3.2px;
+    border: 4px solid transparent;
+    border-left: 6px solid var(--mid);
+    border-right: 0;
+  }
+  .av {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--deep);
+    background: var(--mist);
+  }
+  .av--agent {
+    background: var(--deep);
+  }
+  .av--key {
+    color: #ffffff;
+    background: var(--moss);
+  }
+
+  /* Brain: the folders one agent can reach. */
+  .tree {
+    display: grid;
+    width: 280px;
+    padding: 6px 16px;
+  }
+  .tree li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+  }
+  .tree li + li {
+    border-top: 1px solid var(--ghost);
+  }
+  .tree li.off {
+    color: var(--moss-3);
+  }
+  .tree li.off em {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Budgets: an allowance each, spent so far. */
+  .budget {
+    display: grid;
+    gap: 11px;
+    width: 180px;
+  }
+  .budget li {
+    display: grid;
+    gap: 5px;
+    font-weight: 500;
+  }
+  .budget li i {
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--ghost);
+  }
+  .budget li i::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--deep);
+    transform: scaleX(var(--p));
+    transform-origin: left center;
+  }
+  .budget li.hot i::after {
+    background: var(--moss);
+  }
+
+  /* Audit: three lines of the log. */
+  .audit {
+    display: grid;
+    width: 180px;
+  }
+  .audit li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+  }
+  .audit li + li {
+    border-top: 1px solid var(--ghost);
+  }
+  .audit time {
+    font-size: 12px;
+    color: var(--moss-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Models: the agent's pick. */
+  .models {
+    display: grid;
+    gap: 3px;
+    width: 186px;
+  }
+  .models li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    font-weight: 500;
+    color: var(--moss-2);
+  }
+  .models li.on {
+    color: var(--moss);
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--pale);
+  }
+  .models i {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px var(--moss-4);
+  }
+  .models li.on i {
+    background: #ffffff;
+    box-shadow: inset 0 0 0 4px var(--deep);
+  }
+
+  /* Skills: a published package on its stack of earlier versions. */
+  .skills {
+    display: grid;
+    width: 196px;
+    padding-top: 18px;
+  }
+  .sk-card {
+    position: relative;
+    z-index: 2;
+    grid-area: 1 / 1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 48px;
+    padding: 0 12px 0 14px;
+    border-radius: 13px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px -16px rgba(18, 40, 26, 0.45);
+  }
+  .sk-card--back1 {
+    z-index: 1;
+    transform: translateY(-9px) scale(0.94);
+    opacity: 0.75;
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+  .sk-card--back2 {
+    z-index: 0;
+    transform: translateY(-18px) scale(0.88);
+    opacity: 0.5;
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+  .ver {
+    margin-left: auto;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--deep);
+    background: var(--mist);
+  }
+
+  /* Surfaces: every surface into one agent. */
+  .srf {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .srf-in {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .srf-in li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 28px;
+    padding: 0 12px 0 10px;
+    border-radius: 999px;
+    font-weight: 500;
+    color: var(--moss-2);
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+  .srf-in i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--deep);
+  }
+  .srf-arrow {
+    color: var(--mid);
+  }
+  .srf-agent {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-weight: 500;
+    color: #ffffff;
+    background: var(--deep);
+  }
+</style>

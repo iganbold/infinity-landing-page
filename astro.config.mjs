@@ -6,6 +6,8 @@ import vercel from "@astrojs/vercel";
 export default defineConfig({
   site: process.env.SITE_URL || "https://brain.example.com",
   integrations: [react()],
+  // The demo page used to live at /book-a-demo; keep old links working.
+  redirects: { "/book-a-demo": "/request-demo" },
   // Pages stay static; only routes with `prerender = false` (the demo-request
   // and geo APIs) run as Vercel functions.
   adapter: vercel(),
