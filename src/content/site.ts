@@ -70,7 +70,9 @@ export const howItWorks = {
 } as const;
 
 export const harness = {
-  title: "Organizational Harness",
+  title: "What’s inside",
+  /** The text tile at the middle of the grid. */
+  tile: "Organizational Harness",
   /**
    * One tile each, in reading order; every tile is the same size. The tile
    * shows only `label`; the detail view carries `title`, `body` and `points`.
@@ -148,14 +150,14 @@ export const harness = {
       ],
     },
     {
-      key: "budgets",
-      title: "Spending limits that hold",
-      label: "Budgets per person",
-      body: "Give each person a spending allowance. Each task sets aside its cost before it starts and settles up when it ends, so spending stays within the limit.",
+      key: "models",
+      title: "Any model, your accounts",
+      label: "Any model",
+      body: "Use the included models, or connect your organization’s Anthropic API key, Claude subscription or ChatGPT subscription. Each agent runs on the model you pick.",
       points: [
-        "Usage is tracked by person, by agent and by scheduled job.",
-        "Every task has a hard cost cap.",
-        "Guests get their own weekly allowance.",
+        "Model keys are protected like every other key.",
+        "Admins choose which models are available.",
+        "Costs are tracked for each provider.",
       ],
     },
     {
@@ -181,14 +183,14 @@ export const harness = {
       ],
     },
     {
-      key: "models",
-      title: "Any model, your accounts",
-      label: "Any model",
-      body: "Use the included models, or connect your organization’s Anthropic API key, Claude subscription or ChatGPT subscription. Each agent runs on the model you pick.",
+      key: "budgets",
+      title: "Spending limits that hold",
+      label: "Budgets per person",
+      body: "Give each person a spending allowance. Each task sets aside its cost before it starts and settles up when it ends, so spending stays within the limit.",
       points: [
-        "Model keys are protected like every other key.",
-        "Admins choose which models are available.",
-        "Costs are tracked for each provider.",
+        "Usage is tracked by person, by agent and by scheduled job.",
+        "Every task has a hard cost cap.",
+        "Guests get their own weekly allowance.",
       ],
     },
     {

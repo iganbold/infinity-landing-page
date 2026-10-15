@@ -38,7 +38,7 @@ const year = new Date().getFullYear();
 <script>
   import { mountTopography } from "@/scripts/topography";
 
-  const panel = document.querySelector<HTMLElement>("[data-topo-panel]");
+  const panel = document.querySelector<HTMLElement>("#contact [data-topo-panel]");
   const canvas = panel?.querySelector<HTMLCanvasElement>("[data-topo]");
   if (panel && canvas) mountTopography(canvas, { pointerTarget: panel, opacity: 0.55 });
 </script>

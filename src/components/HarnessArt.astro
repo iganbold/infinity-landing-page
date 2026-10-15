@@ -18,13 +18,13 @@ const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6
 /** Models: the choices an agent can run on, the picked one marked. Scrolls as an endless list. */
 const MODELS = [
   { name: "Included models", on: false },
-  { name: "Claude", on: true },
-  { name: "ChatGPT", on: false },
+  { name: "Anthropic", logo: "Claude", on: true },
+  { name: "OpenAI", logo: "ChatGPT", on: false },
   { name: "Baseten", on: false },
-].map((m) => ({ ...m, mark: MODEL_MARKS[m.name] }));
+].map((m) => ({ ...m, mark: MODEL_MARKS[m.logo ?? m.name] }));
 
 /** Surfaces on the orbit round the agents, a quarter turn apart. */
-const ORBIT = ["Slack", "Discord", "Web chat", "Scheduled job"].map((name, i) => ({ name, mark: SURFACE_MARKS[name], angle: 45 + i * 90 }));
+const ORBIT = ["Slack", "Microsoft Teams", "API", "Cloud"].map((name, i) => ({ name, mark: SURFACE_MARKS[name], angle: 45 + i * 90 }));
 
 /** Audit: log entries, newest first. Scrolls down as an endless list. */
 const AUDIT = [
@@ -49,14 +49,14 @@ const LEVELS = [
  * it, branching outward: six nodes, each forking into two, then two again.
  * A few branches are lit, what one agent draws on. The outer layer is dashed:
  * the brain's boundary. The network is laid out as a flat disc of circles
- * round (0, 0), then squashed by TILT into ellipses, so it can turn in place
- * like a disc seen at an angle while the brain stays upright.
+ * round (0, 0), squashed by TILT (1: seen face on, round, as it fills a big
+ * tile), so it can turn in place while the brain stays upright.
  */
 const BW = 240;
-const BH = 172;
+const BH = 240;
 const [CX, CY] = [BW / 2, BH / 2];
 const DISC = 24;
-const TILT = 0.7;
+const TILT = 1;
 const LAYERS = [
   { R: 46, r: 3.4 },
   { R: 76, r: 3 },
@@ -128,27 +128,16 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
 
 {
   name === "sandbox" && (
-    <div class="ha sbx">
-      <div class="sbx-box">
-        <span class="sys">
-          <svg width="22" height="14" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
-        </span>
-        <ul class="sbx-files">
-          <li><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M1 2.5A1 1 0 0 1 2 1.5h3l1.2 1.5H11a1 1 0 0 1 1 1V10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg>workspace/</li>
-          <li><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M3 1h4.5L10 3.5V11H3z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg>notes.md</li>
-          <li><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M3 1h4.5L10 3.5V11H3z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg>report.csv</li>
-        </ul>
-      </div>
-      <ul class="sbx-out">
-        {["Platform", "Database", "Keys"].map((o) => (
-          <li>
-            <svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true">
-              <path d="M4.2 4.2l5.6 5.6m0-5.6l-5.6 5.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-            {o}
-          </li>
-        ))}
-      </ul>
+    <div class="ha hl-crop">
+      <div class="hl-stage" data-hairline-slot="sandbox" />
+      <svg class="hl-notes" viewBox="50 60 300 225" aria-hidden="true">
+        <text x="58" y="86">Control plane</text>
+        <path d="M58 92H166L188 104" />
+        <rect x="186.5" y="102.5" width="3" height="3" />
+        <text x="344" y="270" text-anchor="end">Sandbox per task</text>
+        <path d="M344 256H312L305 163" />
+        <rect x="303.5" y="160.5" width="3" height="3" />
+      </svg>
     </div>
   )
 }
@@ -298,17 +287,54 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
 
 {
   name === "code" && (
-    <div class="ha cm">
-      <code class="cm-code">
-        <span><b>const</b> found = <b>await</b></span>
-        <span class="cm-in">tools.<em>search</em>(<s>"issues"</s>)</span>
-        <span>tools.<em>call</em>(found[0])</span>
-      </code>
-      <span class="cm-ok">
-        <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M3.5 8.4l2.9 2.9 6.1-6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        Each call checked
+    <div class="ha cmf">
+      <span class="cmf-end">
+        <span class="cmf-dot">
+          <svg width="18" height="11" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
+        </span>
+        <small>Agent</small>
+      </span>
+      <svg class="cmf-link" width="26" height="10" viewBox="0 0 26 10" aria-hidden="true">
+        <path d="M1 5h22M19 1.5L23 5l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <div class="cmf-box">
+        <span class="cmf-tab">Code execution</span>
+        <div class="cmf-run">
+          <span class="cmf-search">
+            <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <path d="M10.5 10.5L14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            tool search
+          </span>
+          <svg class="cmf-fork" width="24" height="57" viewBox="0 0 24 57" aria-hidden="true">
+            <path d="M0 28.5C12 28.5 12 8.5 24 8.5" />
+            <path d="M0 28.5H24" />
+            <path d="M0 28.5C12 28.5 12 48.5 24 48.5" />
+          </svg>
+          <ul class="cmf-tools">
+            {["Tool A", "Tool B", "Tool C"].map((t) => (
+              <li>
+                {t}
+                <svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M3.5 8.4l2.9 2.9 6.1-6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <span class="cmf-tags">Loops · Parallel calls · Filtering</span>
+      </div>
+      <svg class="cmf-link" width="26" height="10" viewBox="0 0 26 10" aria-hidden="true">
+        <path d="M1 5h22M19 1.5L23 5l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span class="cmf-end cmf-end--out">
+        <span class="cmf-dot">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3.5 8.4l2.9 2.9 6.1-6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <small>Result</small>
       </span>
     </div>
   )
@@ -388,14 +414,19 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                   <path d={o.mark.path} fill={o.mark.color} />
                 </svg>
-              ) : o.name === "Web chat" ? (
+              ) : o.name === "Microsoft Teams" ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A1.5 1.5 0 0 1 4 14.5z" fill="none" stroke="#2f7a55" stroke-width="1.8" stroke-linejoin="round" />
+                  <circle cx="18.2" cy="6.2" r="2.6" fill="#7B83EB" />
+                  <path d="M14.5 10h7a1.5 1.5 0 0 1 1.5 1.5v4.2a4 4 0 0 1-4 4h-.5a4 4 0 0 1-4-4z" fill="#7B83EB" />
+                  <circle cx="11.5" cy="5" r="3.2" fill="#5059C9" />
+                  <rect x="1" y="7" width="13" height="13" rx="2" fill="#4B53BC" />
+                  <path d="M4.2 10.2h6.6M7.5 10.2v6.8" fill="none" stroke="#ffffff" stroke-width="1.9" />
                 </svg>
+              ) : o.name === "API" ? (
+                <span class="orb-api">API</span>
               ) : (
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="8.5" fill="none" stroke="#2f7a55" stroke-width="1.8" />
-                  <path d="M12 7.5V12l3 2" fill="none" stroke="#2f7a55" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M7 18.5A4.5 4.5 0 0 1 6.6 9.52 5.5 5.5 0 0 1 17.3 9.1 4.75 4.75 0 0 1 17 18.5z" fill="none" stroke="#2f7a55" stroke-width="1.8" stroke-linejoin="round" />
                 </svg>
               )}
             </span>
@@ -437,10 +468,9 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     stroke-linecap: round;
   }
 
-  /* Credentials: what the agent holds, above what the API gets. */
+  /* Credentials: what the agent holds, then what the API gets, left to right. */
   .cred {
     display: flex;
-    flex-direction: column;
     align-items: center;
     padding: 12px;
   }
@@ -450,7 +480,9 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     width: 156px;
     padding: 11px 14px;
     border-radius: 13px;
-    background: var(--wash);
+    /* White on the tile's wash, so the box reads and the line meets it. */
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--ghost);
   }
   .cr-chip small {
     font-size: 12px;
@@ -462,6 +494,7 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
   }
   .cr-chip--out {
     background: var(--moss);
+    box-shadow: none;
   }
   .cr-chip--out small {
     color: rgba(255, 255, 255, 0.6);
@@ -475,18 +508,18 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     position: relative;
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 46px;
+    width: 56px;
+    height: 34px;
     color: #ffffff;
   }
   .cr-lock::before {
     content: "";
     position: absolute;
-    top: 3px;
-    bottom: 3px;
-    left: 50%;
-    width: 1.6px;
-    margin-left: -0.8px;
+    top: 50%;
+    right: 3px;
+    left: 3px;
+    height: 1.6px;
+    margin-top: -0.8px;
     background: var(--mid);
   }
   .cr-lock svg {
@@ -497,67 +530,63 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     background: var(--deep);
   }
 
-  /* Sandbox: the agent and its files inside a dashed boundary; the
-     platform, its database and stored keys stay outside it. */
-  .sbx {
-    display: grid;
-    justify-items: center;
-    gap: 9px;
+  /* Sandbox: a Hairline figure (public/hairline/sandbox.js), mounted by
+     Harness.astro. The stage keeps the figure's full 400 × 320 viewBox, one
+     unit a pixel, so the pointer maps true; the crop shows only the middle,
+     where the drawing is. Palette: the moss greys, the brand green bright. */
+  .hl-crop {
+    position: relative;
+    width: 300px;
+    height: 225px;
+    overflow: hidden;
   }
-  .sbx-box {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 16px 12px 14px;
-    border: 1.6px dashed var(--deep);
-    border-radius: 16px;
-    background: #ffffff;
+  .hl-stage {
+    position: absolute;
+    top: -60px;
+    left: -50px;
+    width: 400px;
+    --hairline-plate: #ffffff;
+    --hairline-hi: var(--deep);
+    --hairline-edge: var(--moss-3);
+    --hairline-mid: #aab5ac;
+    --hairline-lo: #d3dbd4;
+    --hairline-stroke: 1;
   }
-  .sys {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: var(--deep);
+  /* Each sandbox's fence: dotted in the brand's light green, and deep green
+     around the lit one, with its plate. */
+  .hl-stage :global(path.fence) {
+    stroke: var(--mid);
+    stroke-width: 1.4;
+    stroke-dasharray: 2 3;
   }
-  .sbx-files {
-    display: grid;
-    gap: 5px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  .hl-stage :global(path.fence.hi) {
+    stroke: var(--deep);
+  }
+  /* Callouts over the figure, in the crop's own units: a name, and a
+     hairline leader to what it names. Outside the figure, so it stays free
+     of words. */
+  .hl-notes {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .hl-notes text {
     font-family: var(--mono);
-    font-size: 12px;
-    color: var(--moss-2);
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    fill: var(--moss-2);
   }
-  .sbx-files li {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+  .hl-notes path {
+    fill: none;
+    stroke: var(--moss-3);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
   }
-  .sbx-files svg {
-    color: var(--deep);
-  }
-  .sbx-out {
-    display: flex;
-    gap: 5px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .sbx-out li {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    height: 22px;
-    padding: 0 9px 0 6px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--moss-3);
-    background: var(--ghost);
+  .hl-notes rect {
+    fill: var(--deep);
   }
 
   /* Deployment: from the Infinity cloud, down into your own cloud. */
@@ -1117,6 +1146,12 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
       0 6px 14px -10px rgba(18, 40, 26, 0.45);
     animation: orb-turn 40s linear infinite reverse paused;
   }
+  .orb-api {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--deep);
+  }
   @keyframes orb-turn {
     to {
       transform: rotate(360deg);
@@ -1172,49 +1207,122 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     box-shadow: inset 0 0 0 1px var(--ghost);
   }
 
-  /* Code mode: a few lines that find a tool and call it, every call checked. */
-  .cm {
-    display: grid;
-    justify-items: center;
-    gap: 10px;
+  /* Code mode: the agent hands one program to the code mode sandbox. The
+     program searches for the tools it needs, calls them in parallel (each
+     call checked), loops and filters, and one result comes back. */
+  .cmf {
+    display: flex;
+    align-items: center;
+    padding-top: 8px;
   }
-  .cm-code {
+  /* Agent and result: a disc with its label hanging below, so the disc sits
+     on the flow's centre line. */
+  .cmf-end {
+    position: relative;
     display: grid;
-    gap: 3px;
-    padding: 12px 14px;
-    border-radius: 13px;
+    flex: none;
+    justify-items: center;
+  }
+  .cmf-end small {
+    position: absolute;
+    top: calc(100% + 5px);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--moss-2);
+  }
+  .cmf-dot {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
     color: #ffffff;
     background: var(--moss);
   }
-  .cm-code span {
-    display: block;
+  .cmf-end--out .cmf-dot {
+    background: var(--deep);
   }
-  .cm-code .cm-in {
-    padding-left: 2ch;
+  .cmf-link {
+    flex: none;
+    margin: 0 4px;
+    color: var(--moss-4);
   }
-  .cm-code b {
-    font-weight: 400;
-    color: var(--pale);
+  .cmf-box {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 7px;
+    padding: 13px 10px 8px;
+    border-radius: 14px;
+    background: var(--mist);
+    box-shadow: inset 0 0 0 1px var(--pale);
   }
-  .cm-code em {
-    font-style: normal;
-    color: #9fd35a;
+  .cmf-tab {
+    position: absolute;
+    top: -8px;
+    left: 10px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: var(--deep);
   }
-  .cm-code s {
-    text-decoration: none;
-    color: #f0c46a;
+  .cmf-run {
+    display: flex;
+    align-items: center;
   }
-  .cm-ok {
+  .cmf-search {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px 4px 8px;
-    border-radius: 999px;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: var(--deep);
+    gap: 5px;
+    height: 22px;
+    padding: 0 9px 0 7px;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #ffffff;
+    background: var(--moss);
+  }
+  .cmf-fork {
+    flex: none;
+    overflow: visible;
+  }
+  .cmf-fork path {
+    fill: none;
+    stroke: var(--mid);
+    stroke-width: 1.4;
+  }
+  .cmf-tools {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .cmf-tools li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: 17px;
+    padding: 0 6px 0 8px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--moss);
     background: #ffffff;
-    box-shadow: inset 0 0 0 1px var(--pale);
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+  .cmf-tools svg {
+    color: var(--deep);
+  }
+  .cmf-tags {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--moss-2);
   }
 
   /* Jobs: how a job can start, and one job with its last few runs. */
@@ -1288,18 +1396,18 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
      with focus inside), and sit still otherwise. Each animation is declared
      only under hover, so it starts afresh on every visit. */
 
-  /* Credentials: a key passes down through the lock. */
+  /* Credentials: a key passes across through the lock. */
   .cr-lock svg {
     z-index: 1;
   }
   .cr-lock::after {
     content: "";
     position: absolute;
-    top: 3px;
-    left: 50%;
+    top: 50%;
+    left: 3px;
     width: 6px;
     height: 6px;
-    margin-left: -3px;
+    margin-top: -3px;
     border-radius: 50%;
     background: var(--mid);
     opacity: 0;
@@ -1311,9 +1419,9 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     animation: cr-bump 1.6s ease-in-out infinite;
   }
   @keyframes cr-pass {
-    0% { opacity: 0; transform: translateY(0); }
+    0% { opacity: 0; transform: translateX(0); }
     15%, 85% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(34px); }
+    100% { opacity: 0; transform: translateX(44px); }
   }
   @keyframes cr-bump {
     0%, 35%, 65%, 100% { transform: none; }
@@ -1359,26 +1467,6 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     50% { transform: scale(1.7); }
   }
 
-  /* Sandbox: the agent works inside; outside things are refused in turn. */
-  :global([data-tile]:is(:hover, :focus-within)) .sys {
-    animation: sbx-glow 2.4s ease-in-out infinite;
-  }
-  .sbx-out li:nth-child(2) { --i: 1; }
-  .sbx-out li:nth-child(3) { --i: 2; }
-  :global([data-tile]:is(:hover, :focus-within)) .sbx-out li {
-    animation: sbx-no 2.4s ease-in-out infinite;
-    animation-delay: calc(var(--i, 0) * 0.8s);
-  }
-  @keyframes sbx-glow {
-    50% { box-shadow: 0 0 0 6px var(--mist); }
-  }
-  @keyframes sbx-no {
-    0%, 20%, 100% { transform: none; }
-    5% { transform: translateX(-2px); }
-    10% { transform: translateX(2px); }
-    15% { transform: translateX(-1px); }
-  }
-
   /* Brain: what the agent draws on flows out along the lit branches. */
   :global([data-tile]:is(:hover, :focus-within)) .brn-link--lit {
     stroke-dasharray: 3 4;
@@ -1419,24 +1507,47 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     45%, 100% { transform: scaleX(var(--p)); }
   }
 
-  /* Code mode: the program writes itself, then every call is checked. */
-  .cm-code span:nth-child(2) { --i: 1; }
-  .cm-code span:nth-child(3) { --i: 2; }
-  :global([data-tile]:is(:hover, :focus-within)) .cm-code span {
-    animation: cm-type 3.6s steps(22, end) infinite;
-    animation-delay: calc(var(--i, 0) * 0.55s - 0.55s);
+  /* Code mode: the search lights, the calls fan out together, each is
+     checked, and the result comes back. */
+  .cmf-fork path {
+    stroke-dasharray: 32;
   }
-  :global([data-tile]:is(:hover, :focus-within)) .cm-ok {
-    animation: cm-ok 3.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  :global([data-tile]:is(:hover, :focus-within)) .cmf-search {
+    animation: cmf-search 3.6s ease-in-out infinite;
   }
-  @keyframes cm-type {
-    0%, 8% { clip-path: inset(0 100% 0 0); }
-    32%, 100% { clip-path: inset(0); }
+  :global([data-tile]:is(:hover, :focus-within)) .cmf-fork path {
+    animation: cmf-draw 3.6s ease-in-out infinite;
   }
-  @keyframes cm-ok {
-    0%, 55% { opacity: 0.35; transform: scale(0.92); }
-    65% { opacity: 1; transform: scale(1.08); }
-    75%, 100% { opacity: 1; transform: none; }
+  :global([data-tile]:is(:hover, :focus-within)) .cmf-tools li {
+    animation: cmf-call 3.6s ease-in-out infinite;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .cmf-tools svg {
+    animation: cmf-check 3.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .cmf-end--out .cmf-dot {
+    animation: cmf-result 3.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  }
+  @keyframes cmf-search {
+    0%, 30%, 100% { box-shadow: 0 0 0 0 rgba(95, 163, 122, 0); }
+    12% { box-shadow: 0 0 0 4px rgba(95, 163, 122, 0.35); }
+  }
+  @keyframes cmf-draw {
+    0%, 15% { stroke-dashoffset: 32; }
+    38%, 100% { stroke-dashoffset: 0; }
+  }
+  @keyframes cmf-call {
+    0%, 32% { opacity: 0.4; }
+    42%, 100% { opacity: 1; }
+  }
+  @keyframes cmf-check {
+    0%, 45% { opacity: 0; transform: scale(0.4); }
+    55% { opacity: 1; transform: scale(1.2); }
+    65%, 100% { opacity: 1; transform: none; }
+  }
+  @keyframes cmf-result {
+    0%, 62% { opacity: 0.45; transform: scale(0.88); }
+    72% { opacity: 1; transform: scale(1.1); }
+    82%, 100% { opacity: 1; transform: none; }
   }
 
   /* Jobs: the clock turns and the current run fills. */

@@ -10,13 +10,21 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const BACKDROPS: Backdrop[] = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"];
 
 /** Tiles whose graphic sits on a photo, framed like the How it works cards. */
-const PHOTO: Partial<Record<string, Backdrop>> = { credentials: "01-forest-floor" };
+const PHOTO: Partial<Record<string, Backdrop>> = { sandbox: "01-forest-floor", skills: "01-forest-floor" };
 /** The one tile in the brand green. */
 const GREEN = "checks";
 /** The detail view and each tile's "+" opener. Off for now; flip to true to bring them back. */
 const showDetail = false;
-/** The order tiles arrive in as the section scrolls in: scattered, one after another. */
-const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
+/** Tiles left out of the grid for now; their content stays in site.ts. */
+const HIDDEN = new Set(["access", "checks", "deployment", "audit"]);
+/** The tiles that take a double-size cell; their graphic may grow to fill it. */
+const BIG = new Set(["sandbox", "brain", "skills"]);
+/** The tiles that take two columns of one row; their graphic may grow a little. */
+const WIDE = new Set(["credentials", "code", "connectors"]);
+const items = h.items.filter((item) => !HIDDEN.has(item.key));
+/** The order tiles arrive in as the section scrolls in: scattered, one after another.
+    Index 0 is the title tile, then one per item. */
+const ARRIVE = [0, 3, 9, 6, 1, 10, 4, 7, 2, 5, 8];
 ---
 
 <section class="harness" id="security" aria-labelledby="harness-title">
@@ -26,18 +34,29 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
       <span class="title-rule" aria-hidden="true" data-reveal style="--d:1"></span>
     </header>
 
-    <!-- Grid of equal tiles. Each tile is a preview: one still graphic and a
-         short label. The label's button opens the detail view; its hit area
-         covers the tile. Rows take their height from the viewport, so on a
-         desktop the whole grid fits on one screen; each graphic shrinks to
-         fit its tile. -->
+    <!-- Bento grid: a text tile at the centre, then one tile per item, a few of them double size. Each item tile is a preview: one
+         still graphic and a short label. The label's button opens the detail
+         view; its hit area covers the tile. Rows take their height from the
+         viewport, so on a desktop the whole grid fits on one screen; each
+         graphic is zoomed to fit its tile. -->
     <ol class="bento">
+      <li class="card card--text" data-reveal data-topo-panel style={`--d:${ARRIVE[0]}`}>
+        <canvas class="topo" aria-hidden="true" data-topo></canvas>
+        <span class="glow" aria-hidden="true"></span>
+        <span class="glow-ring" aria-hidden="true"></span>
+        <p class="tile-title">{h.tile}</p>
+      </li>
       {
-        h.items.map((item, i) => (
-          <li class:list={["card", `tile-${item.key}`]} data-tile data-reveal style={`--d:${ARRIVE[i % ARRIVE.length]}`}>
+        items.map((item, i) => (
+          <li
+            class:list={["card", `tile-${item.key}`, { "card--big": BIG.has(item.key), "card--wide": WIDE.has(item.key) }]}
+            data-tile
+            data-reveal
+            style={`--d:${ARRIVE[(i + 1) % ARRIVE.length]}`}
+          >
             <div class:list={["art", { "art--photo": PHOTO[item.key], "art--green": item.key === GREEN }]} aria-hidden="true">
               {PHOTO[item.key] && <span class="art-bg" style={photo(PHOTO[item.key]!)} />}
-              <div class="fit" data-fit>
+              <div class="fit" data-fit data-fit-max={BIG.has(item.key) ? "1.6" : WIDE.has(item.key) ? "1.3" : undefined}>
                 {PHOTO[item.key] ? (
                   <div class="rim">
                     <div class="paper">
@@ -77,7 +96,7 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
        through them in tile order. Off while showDetail is false. -->
   {
     showDetail && (
-      <dialog class="sheet" data-sheet aria-labelledby={`hx-t-${h.items[0].key}`}>
+      <dialog class="sheet" data-sheet aria-labelledby={`hx-t-${items[0].key}`}>
         <div class="sheet-in">
           <button type="button" class="close" data-sheet-close aria-label={h.dialog.close}>
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
@@ -86,11 +105,11 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
           </button>
           <div class="sheet-scroll" data-sheet-scroll>
             {
-              h.items.map((item, i) => (
+              items.map((item, i) => (
                 <article class="panel" data-panel={item.key} data-title={item.title} hidden={i !== 0}>
                   <div class="panel-text">
                     <span class="n mono">
-                      {pad(i + 1)} / {pad(h.items.length)}
+                      {pad(i + 1)} / {pad(items.length)}
                     </span>
                     <h3 id={`hx-t-${item.key}`} class="panel-title">
                       {item.title}
@@ -146,11 +165,37 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
   }
 </section>
 
+<!--
+  Hairline figures (isometric line drawings that answer the pointer), in the
+  tiles that carry one. The kernel is a classic script exposing HL; the host
+  mounts each figure into its slot; the figures are modules, so they run after
+  both. No tour: like every tile, a figure moves only under the pointer.
+-->
+<script is:inline src="/hairline/kernel.js"></script>
+<script is:inline>
+  window.hairline = (figure) => {
+    const stage = document.querySelector(`[data-hairline-slot="${figure.name}"]`);
+    if (!stage || stage.hasAttribute("data-hairline")) return;
+    HL.inject(document);
+    stage.setAttribute("data-hairline", figure.name);
+    const svg = HL.mk("svg", { viewBox: "0 0 400 320", "aria-hidden": "true" }, stage);
+    figure.mount({ stage, svg, read: { textContent: "" } }, figure.range[1]);
+  };
+</script>
+<script is:inline type="module" src="/hairline/sandbox.js"></script>
+
 <script>
   import { mountHarness } from "@/scripts/harness";
 
+  import { mountTopography } from "@/scripts/topography";
+
   const section = document.querySelector<HTMLElement>("#security");
   if (section) mountHarness(section);
+
+  // The title tile: the request demo sidebar's contour lines.
+  const panel = section?.querySelector<HTMLElement>("[data-topo-panel]");
+  const topo = panel?.querySelector<HTMLCanvasElement>("[data-topo]");
+  if (panel && topo) mountTopography(topo, { pointerTarget: panel, opacity: 0.55 });
 </script>
 
 <style>
@@ -190,6 +235,7 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
     line-height: 1.02;
     letter-spacing: -0.035em;
     color: var(--ink-dark);
+    text-wrap: balance;
   }
   .title-rule {
     width: 72px;
@@ -200,23 +246,148 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
 
   /* ------------------------------------------------ bento */
 
-  /* Every tile the same size. Desktop: five a row, three rows sized to the
-     screen. A last row that isn't full sits centred. */
+  /* Desktop: six columns, four rows sized to the screen. The title, big and
+     wide tiles are placed; the four small ones fill the gaps in order:
+
+       S   S   ·   ·   B   B
+       S   S   T   T   B   B
+       Kr  Kr  ·   ·   M   M
+       Cd  Cd  Cn  Cn  M   M
+
+     (T title, S sandbox, B brain, M memory and skills, Kr keys,
+      Cd code mode, Cn connectors) */
   .bento {
-    --cols: 5;
+    --cols: 6;
     --gap: 12px;
-    --row: clamp(190px, calc((100svh - 180px) / 3), 250px);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    --row: clamp(160px, calc((100svh - 240px) / 4), 220px);
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    grid-auto-rows: var(--row);
     gap: var(--gap);
     margin: 0;
     padding: 0;
     list-style: none;
   }
-  .bento > .card {
-    flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
-    height: var(--row);
+  .card--text {
+    grid-area: 2 / 3 / span 1 / span 2;
+  }
+  .tile-sandbox {
+    grid-area: 1 / 1 / span 2 / span 2;
+  }
+  .tile-brain {
+    grid-area: 1 / 5 / span 2 / span 2;
+  }
+  .tile-skills {
+    grid-area: 3 / 5 / span 2 / span 2;
+  }
+  .tile-credentials {
+    grid-area: 3 / 1 / span 1 / span 2;
+  }
+  .tile-code {
+    grid-area: 4 / 1 / span 1 / span 2;
+  }
+  .tile-connectors {
+    grid-area: 4 / 3 / span 1 / span 2;
+  }
+  /* The logo strip runs the width of its wide tile. */
+  .tile-connectors :global(.cn) {
+    width: 400px;
+  }
+
+  /* The text tile: the request demo sidebar's forest card (gradient,
+     contour lines, turning edge glow), its text centred and set as large as
+     the tile allows. */
+  .card.card--text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 1.6vw, 22px);
+    overflow: hidden;
+    isolation: isolate;
+    text-align: center;
+    container-type: inline-size;
+    background:
+      radial-gradient(70% 50% at 0% 0%, rgba(255, 214, 140, 0.14), transparent 70%),
+      linear-gradient(160deg, #22432f 0%, #1d3a2b 55%, #142a1e 100%);
+    box-shadow: 0 40px 80px -44px rgba(20, 45, 30, 0.6);
+  }
+  .card--text:hover {
+    transform: none;
+    box-shadow: 0 40px 80px -44px rgba(20, 45, 30, 0.6);
+  }
+  .card--text::before,
+  .card--text::after {
+    content: none;
+  }
+  .tile-title {
+    font-size: min(10cqi, 56px);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    color: #ffffff;
+  }
+
+  /* Contours under the edge glow; quieter behind the title. */
+  .topo {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(90% 55% at 50% 50%, rgba(0, 0, 0, 0.35), #000 100%);
+    mask-image: radial-gradient(90% 55% at 50% 50%, rgba(0, 0, 0, 0.35), #000 100%);
+  }
+
+  /* Siri-style inner glow, as on the request demo sidebar: a slowly turning
+     conic gradient cut to a thin band along the edges, blurred so the light
+     softens inward. The tile's overflow clips the outer half. */
+  @property --glow-angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+  .glow,
+  .glow-ring {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .glow::before,
+  .glow-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: conic-gradient(from var(--glow-angle), #ffcf7a, #d6f58a, #4fe3b0, #6cc4ff, #4fe3b0, #d6f58a, #ffcf7a);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: glow-spin 9s linear infinite;
+  }
+  .glow {
+    filter: blur(18px) saturate(1.3);
+  }
+  .glow::before {
+    padding: 14px;
+  }
+  /* A tighter, brighter edge on top, softly blurred. */
+  .glow-ring {
+    filter: blur(3px);
+    opacity: 0.9;
+  }
+  .glow-ring::before {
+    padding: 3px;
+  }
+  @keyframes glow-spin {
+    to {
+      --glow-angle: 360deg;
+    }
   }
 
   /* Same white sheet as the comparison table above: the graphic inset at
@@ -354,6 +525,7 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
       0 30px 60px -28px rgba(8, 24, 15, 0.65);
   }
   .paper {
+    padding: 14px;
     border-radius: 17px;
     overflow: hidden;
     background: #ffffff;
@@ -582,9 +754,6 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
     isolation: isolate;
     background: #1a3326;
   }
-  .paper--detail {
-    padding: 14px;
-  }
 
   .sheet-foot {
     display: flex;
@@ -648,15 +817,47 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
     .card:hover {
       transform: none;
     }
+    .glow::before,
+    .glow-ring::before {
+      animation: none;
+    }
   }
 
   /* ------------------------------------------------ narrower */
 
-  /* Tablets: four a row. */
+  /* Tablets: four columns, six rows, the title still in the middle.
+
+       S   S   ·   ·
+       S   S   Kr  Kr
+       ·   T   T   ·
+       Cd  Cd  Cn  Cn
+       B   B   M   M
+       B   B   M   M */
   @media (max-width: 1080px) {
     .bento {
       --cols: 4;
-      --row: clamp(180px, calc((100svh - 200px) / 4), 220px);
+      --row: clamp(150px, calc((100svh - 260px) / 6), 190px);
+    }
+    .card--text {
+      grid-area: 3 / 2 / span 1 / span 2;
+    }
+    .tile-sandbox {
+      grid-area: 1 / 1 / span 2 / span 2;
+    }
+    .tile-brain {
+      grid-area: 5 / 1 / span 2 / span 2;
+    }
+    .tile-skills {
+      grid-area: 5 / 3 / span 2 / span 2;
+    }
+    .tile-credentials {
+      grid-area: 2 / 3 / span 1 / span 2;
+    }
+    .tile-code {
+      grid-area: 4 / 1 / span 1 / span 2;
+    }
+    .tile-connectors {
+      grid-area: 4 / 3 / span 1 / span 2;
     }
   }
 
@@ -673,12 +874,23 @@ const ARRIVE = [3, 9, 0, 12, 6, 1, 10, 4, 13, 7, 2, 11, 5, 8];
     }
   }
 
-  /* Phones: two a row. */
+  /* Phones: two columns in reading order, the title first; the title,
+     big and wide tiles span both, and small tiles pack into any gap. */
   @media (max-width: 640px) {
     .bento {
       --cols: 2;
       --gap: 10px;
-      --row: 200px;
+      --row: 180px;
+      grid-auto-flow: row dense;
+    }
+    .card--text {
+      grid-area: auto / auto / span 1 / span 2;
+    }
+    .bento > .card--big {
+      grid-area: auto / auto / span 2 / span 2;
+    }
+    .bento > .card--wide {
+      grid-area: auto / auto / span 1 / span 2;
     }
     .art {
       padding: 8px;

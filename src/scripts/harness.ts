@@ -133,8 +133,9 @@ function mountSheet(section: HTMLElement) {
 
 /**
  * Previews: each tile's graphic is drawn at a fixed natural size; zoom it down
- * (never up) until it fits inside its tile's padding. Runs again only when a
- * tile changes size, so nothing moves while the page is read.
+ * until it fits inside its tile's padding. A graphic with `data-fit-max` (the
+ * big tiles) may also grow, up to that factor. Runs again only when a tile
+ * changes size, so nothing moves while the page is read.
  */
 function fitPreviews(section: HTMLElement) {
   const fit = (box: HTMLElement) => {
@@ -144,8 +145,8 @@ function fitPreviews(section: HTMLElement) {
     const cs = getComputedStyle(box);
     const w = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const h = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-    const s = Math.min(1, w / el.offsetWidth, h / el.offsetHeight);
-    if (s < 1) el.style.zoom = s.toFixed(3);
+    const s = Math.min(Number(el.dataset.fitMax) || 1, w / el.offsetWidth, h / el.offsetHeight);
+    if (s !== 1) el.style.zoom = s.toFixed(3);
   };
   const ro = new ResizeObserver((entries) => entries.forEach((e) => fit(e.target as HTMLElement)));
   section.querySelectorAll<HTMLElement>("[data-fit]").forEach((el) => ro.observe(el.parentElement!));
