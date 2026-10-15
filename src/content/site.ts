@@ -210,7 +210,7 @@ export const harness = {
       key: "code",
       title: "Agents write code to use your tools",
       label: "Code mode",
-      body: "Instead of calling tools one at a time, an agent can write a short JavaScript program that finds the tools it needs and calls them. The code runs in its own sandbox, and every tool call it makes passes the same checks as any other.",
+      body: "Code Mode searches the available tools, generates a short program using the relevant ones, then passes it to Execute. The program runs in an isolated sandbox, keeps intermediate work contained, and returns only the result. Every tool call still passes the same checks as any other.",
       points: [
         "The code has no network, no keys and no way into the platform’s files or database.",
         "Each tool call from the code is checked and logged, one by one.",
