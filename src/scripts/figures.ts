@@ -285,7 +285,7 @@ const outcome: Build = (svg) => {
         set(l.text, { fill: mix(C.ink3, C.ink, act[k]), opacity: late.toFixed(3) });
       });
 
-      return ["Defining what to achieve", "Choosing how success is measured", "Setting the edges of its role", "Handed to the System"][i];
+      return ["Defining what to achieve", "Choosing how success is measured", "Setting the edges of its role", "Handed to the outcome machine"][i];
     },
   };
 };
@@ -458,7 +458,9 @@ const table: Build = (svg) => {
   el("path", { d: "M-10 11A10 9 0 0 1 10 11" }, person);
   badge(who, 42, ME, 14);
   label(who, 42, TEAM + 30, "Team", "middle");
-  label(who, 42, ME + 30, "System", "middle");
+  // Two lines, so the name stays in the column left of the tracks.
+  label(who, 42, ME + 30, "Outcome", "middle");
+  label(who, 42, ME + 43, "machine", "middle");
 
   // the team keeps its own work going on its track
   const work = [

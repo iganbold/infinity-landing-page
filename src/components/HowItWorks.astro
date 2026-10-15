@@ -1,6 +1,9 @@
 ---
 import { howItWorks as h } from "@/content/site";
 
+/** The closing block under the steps ("An ongoing teammate…"). Hidden for now; flip to true to bring it back. */
+const showClosing = false;
+
 /** One figure per step (scripts/figures.ts), in step order, with what it shows for screen readers. */
 const FIGURES = [
   { name: "outcome", means: "Three rings around one centre: the outcome to achieve, a gauge for how success is measured, and a dashed boundary marking the outcome machine's role." },
@@ -58,16 +61,20 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
       }
     </ol>
 
-    <div class="closing" data-reveal>
-      <h3 class="closing-title">{h.closing.title}</h3>
-      <p class="closing-body">{h.closing.body}</p>
-      <a href={h.closing.cta.href} class="closing-cta">
-        {h.closing.cta.label}
-        <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M4 12L12 4M5.5 4H12v6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </a>
-    </div>
+    {
+      showClosing && (
+        <div class="closing" data-reveal>
+          <h3 class="closing-title">{h.closing.title}</h3>
+          <p class="closing-body">{h.closing.body}</p>
+          <a href={h.closing.cta.href} class="closing-cta">
+            {h.closing.cta.label}
+            <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4 12L12 4M5.5 4H12v6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </div>
+      )
+    }
   </div>
 </section>
 
