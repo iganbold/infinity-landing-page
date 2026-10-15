@@ -11,7 +11,7 @@ const photo = (n: string) =>
 const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"];
 
 /** Tiles whose graphic sits on a photo, framed like the How it works cards. */
-const PHOTO: Partial<Record<string, string>> = { credentials: "01-forest-floor", brain: "04-panorama" };
+const PHOTO: Partial<Record<string, string>> = { credentials: "01-forest-floor" };
 /** The one tile in the brand green. */
 const GREEN = "checks";
 ---
@@ -21,7 +21,6 @@ const GREEN = "checks";
     <header class="head">
       <h2 id="harness-title" class="title" data-reveal>{h.title}</h2>
       <span class="title-rule" aria-hidden="true" data-reveal style="--d:1"></span>
-      <p class="intro" data-reveal style="--d:2">{h.intro}</p>
     </header>
 
     <!-- Bento: big 2×2, wide 2×1, tall 1×2 and small 1×1 tiles, packed densely.
@@ -164,7 +163,7 @@ const GREEN = "checks";
 
   /* ------------------------------------------------ head */
 
-  /* Centred, like How it works: the title, the rule under it, then the intro. */
+  /* Centred, like How it works: the title and the rule under it. */
   .head {
     display: grid;
     justify-items: center;
@@ -184,13 +183,6 @@ const GREEN = "checks";
     height: 4px;
     border-radius: 4px;
     background: var(--deep);
-  }
-  .intro {
-    max-width: 46ch;
-    text-wrap: balance;
-    font-size: clamp(17px, 1.4vw, 20px);
-    line-height: 1.55;
-    color: var(--ink-mid);
   }
 
   /* ------------------------------------------------ bento */

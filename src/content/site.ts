@@ -18,7 +18,7 @@ export const site = {
 } as const;
 
 export const hero = {
-  title: "Build outcome\nmachines.",
+  title: "Build outcome\nmachines",
   subtitle:
     "Outcome machines are durable agents built on your organization’s knowledge, tools, memory, and guardrails. They grow stronger with every run, until outcomes flow like water.",
   cta: { label: "Request a demo", href: "/request-demo" },
@@ -27,7 +27,7 @@ export const hero = {
 
 export const whoWeAre = {
   /** `*text*` renders as the brand highlight. */
-  title: "We are an *Applied Super Intelligence Lab*, focused on building the foundations that make outcomes flow.",
+  title: "We are an *Applied Super Intelligence Lab*, focused on building the foundations that make outcomes flow",
   cta: { label: "Request a demo", href: "/request-demo" },
   /** The progression the section argues for; the last one is the product. */
   compare: [
@@ -40,40 +40,38 @@ export const whoWeAre = {
 } as const;
 
 export const howItWorks = {
-  title: "How an outcome machine works.",
+  title: "How an outcome machine works",
   steps: [
     {
-      title: "Set the outcome.",
+      title: "Set the outcome",
       body: "Define what you want to achieve, how you’ll measure success, and the boundaries of its role.",
       visual: "Outcome and responsibility",
     },
     {
-      title: "Bring it into your company.",
+      title: "Bring it into your company",
       body: "Teach it what your team knows and connect the tools they use. The setup your most AI-forward people built for themselves becomes part of how the whole organization works.",
       visual: "Company context and tools",
     },
     {
-      title: "Work alongside it.",
+      title: "Work alongside it",
       body: "Hand it the work the way you would to a trusted colleague. Check in on progress, give direction when it matters, and let it ask when it's unsure. It works beside your team, not instead of it.",
       visual: "Team collaboration",
     },
     {
-      title: "Learning compounds with every outcome.",
+      title: "Learning compounds with every outcome",
       body: "Every outcome captures what worked, what didn’t, and why. Instead of disappearing in individual chat histories, that learning becomes organizational infrastructure. Every outcome that follows starts from what your company has already learned.",
       visual: "Knowledge that compounds",
     },
   ],
   closing: {
-    title: "An ongoing teammate for your organization.",
+    title: "An ongoing teammate for your organization",
     body: "The work can continue across conversations, with your team involved along the way.",
     cta: { label: "Book a demo", href: "/request-demo" },
   },
 } as const;
 
 export const harness = {
-  title: "The Organizational Harness.",
-  intro:
-    "An outcome machine needs real access to do real work. The harness decides what each one can see, touch and spend, and checks every action it takes.",
+  title: "Organizational Harness",
   /**
    * One tile each, in reading order. `size` sets the tile's span in the grid:
    * big 2×2, wide 2×1, tall 1×2, small 1×1. The tile shows only `label`; the
@@ -223,7 +221,7 @@ export const harness = {
 } as const;
 
 export const footer = {
-  title: "Put an outcome machine\nto work.",
+  title: "Put an outcome machine\nto work",
   body: "Tell us what you want to achieve. We'll show you how an outcome machine takes it on.",
   demo: { label: "Book a demo", href: "/request-demo" },
   /** Replace with the real inbox. */
@@ -237,7 +235,7 @@ export const footer = {
 } as const;
 
 export const bookDemo = {
-  title: "Meet your first\noutcome machine.",
+  title: "Meet your first\noutcome machine",
   body: "Tell us a little about your team. We'll reach out to set up a walkthrough.",
   fields: {
     firstName: "First name",
@@ -257,7 +255,7 @@ export const bookDemo = {
   optIn: "Send me occasional updates. Unsubscribe anytime.",
   privacy: { label: "How we use your info:", link: "Privacy Policy", href: "/privacy" },
   submit: "Request a demo",
-  sent: { title: "Thanks, we got it.", body: "Our team will reach out soon to set up a time." },
+  sent: { title: "Thanks, we got it", body: "Our team will reach out soon to set up a time." },
   error: "Something went wrong. Please try again, or email us instead.",
   back: "Back to home",
 } as const;

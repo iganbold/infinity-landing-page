@@ -13,6 +13,72 @@ interface Props {
 const { name } = Astro.props;
 
 const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6a2.5 2.5 0 0 1 5 0V5";
+
+/** Access: the levels a person can hold, lowest first (the same words as the detail view). */
+const LEVELS = [
+  { name: "Off", now: "" },
+  { name: "Can view", now: "can view now" },
+  { name: "Can use", now: "can use it now" },
+  { name: "Can edit", now: "can edit now" },
+  { name: "Can manage", now: "can manage it now" },
+];
+
+/**
+ * Company brain: a brain at the centre and three layers of knowledge round
+ * it, branching outward: six nodes, each forking into two, then two again.
+ * A few branches are lit, what one agent draws on. The outer layer is dashed:
+ * the brain's boundary.
+ */
+const BW = 440;
+const BH = 300;
+const [CX, CY] = [BW / 2, BH / 2];
+const DISC = 31;
+const LAYERS = [
+  { rx: 80, ry: 56, r: 4 },
+  { rx: 136, ry: 94, r: 3.4 },
+  { rx: 190, ry: 128, r: 3 },
+];
+type Node = { a: number; x: number; y: number; r: number; parent: number; lit: boolean };
+const at = (k: number, a: number) => [CX + LAYERS[k].rx * Math.cos(a), CY + LAYERS[k].ry * Math.sin(a)];
+const node = (k: number, a: number, parent: number): Node => {
+  const [x, y] = at(k, a);
+  return { a, x, y, r: LAYERS[k].r, parent, lit: false };
+};
+const STEP = (Math.PI * 2) / 6;
+const nodes: Node[][] = [Array.from({ length: 6 }, (_, i) => node(0, (i + 0.5) * STEP - Math.PI / 2, -1))];
+for (let k = 1; k < LAYERS.length; k++) {
+  const fork = STEP / 2 ** (k + 1);
+  nodes.push(nodes[k - 1].flatMap((p, j) => [node(k, p.a - fork, j), node(k, p.a + fork, j)]));
+}
+// Light a few outer nodes and everything between them and the brain.
+for (const i of [2, 3, 12, 19]) {
+  for (let k = 2, n = nodes[2][i]; k >= 0; n = nodes[--k]?.[n.parent]) if (n) n.lit = true;
+}
+const f = (v: number) => v.toFixed(1);
+/** Each branch leaves its parent heading outward, then bends into its child. */
+const links = nodes.flatMap((layer, k) =>
+  layer.map((n) => {
+    if (k === 0) {
+      const d = Math.hypot(n.x - CX, n.y - CY);
+      return { d: `M${f(CX + ((n.x - CX) / d) * DISC)} ${f(CY + ((n.y - CY) / d) * DISC)}L${f(n.x)} ${f(n.y)}`, lit: n.lit };
+    }
+    const p = nodes[k - 1][n.parent];
+    const mid = { rx: (LAYERS[k - 1].rx + LAYERS[k].rx) / 2, ry: (LAYERS[k - 1].ry + LAYERS[k].ry) / 2 };
+    const [qx, qy] = [CX + mid.rx * Math.cos(p.a), CY + mid.ry * Math.sin(p.a)];
+    return { d: `M${f(p.x)} ${f(p.y)}Q${f(qx)} ${f(qy)} ${f(n.x)} ${f(n.y)}`, lit: n.lit };
+  }),
+);
+/** The brain seen from above: the left half, mirrored for the right. */
+const HALF = [
+  "M-1.5 -17C-6 -21 -14 -20.5 -17 -15.5C-22 -14 -24.5 -8.5 -22.5 -4C-25 0 -24 6.5 -19.5 9C-19 15 -12.5 19.5 -6.5 17.5C-4.5 19 -2 18.5 -1.5 17Z",
+  "M-1.5 -9C-5 -11 -8.5 -8.5 -8 -5",
+  "M-17 -15.5C-15 -12 -16 -9 -13 -7.5",
+  "M-22.5 -4C-18 -4.5 -15.5 -1.5 -12.5 -2",
+  "M-1.5 3C-5 1.5 -9 3.5 -9.5 7",
+  "M-19.5 9C-16 7.5 -13 9 -12.5 12.5",
+];
+const mirror = (d: string) => d.replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => `${-x} ${y}`);
+const BRAIN = [...HALF, ...HALF.map(mirror)];
 ---
 
 {
@@ -86,27 +152,15 @@ const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6
 
 {
   name === "access" && (
-    <div class="ha chain">
-      <span class="node">
-        <span class="av">ST</span>
-        Support team
+    <div class="ha lvl" data-loop="seq" data-steps={LEVELS.length} data-rest="2" data-ms="1700">
+      <span class="lvl-who">
+        {LEVELS.map((l, k) => k > 0 && <span data-only={k}>Jessie {l.now}</span>)}
       </span>
-      <span class="link"><i /></span>
-      <span class="node">
-        <span class="av av--agent">
-          <svg width="16" height="10" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
-        </span>
-        Infinity Agent
+      <span class="lvl-name">
+        {LEVELS.map((l, k) => <span class:list={{ "lvl-off": k === 0 }} data-only={k}>{l.name}</span>)}
       </span>
-      <span class="link"><i /></span>
-      <span class="node">
-        <span class="av av--key">
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <circle cx="4.6" cy="7" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5" />
-            <path d="M7.4 7H13M11 7v2.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-        </span>
-        GitHub
+      <span class="lvl-pill" data-at="1">
+        {LEVELS.slice(1).map((_, k) => <i data-at={k + 1} />)}
       </span>
     </div>
   )
@@ -114,20 +168,19 @@ const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6
 
 {
   name === "brain" && (
-    <ul class="ha tree">
-      <li><code>handbook/</code><em>Read</em></li>
-      <li><code>tickets/</code><em class="yes">Read &amp; write</em></li>
-      <li><code>playbooks/</code><em class="yes">Read &amp; write</em></li>
-      <li class="off">
-        <code>finance/</code>
-        <em>
-          <svg width="11" height="13" viewBox="0 0 11 13" aria-hidden="true">
-            <path d={LOCK} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-          </svg>
-          Hidden
-        </em>
-      </li>
-    </ul>
+    <svg class="ha brn" width={BW} height={BH} viewBox={`0 0 ${BW} ${BH}`} aria-hidden="true">
+      {LAYERS.map((l, k) => (
+        <ellipse class:list={["brn-layer", { "brn-layer--edge": k === LAYERS.length - 1 }]} cx={CX} cy={CY} rx={l.rx} ry={l.ry} />
+      ))}
+      {links.filter((l) => !l.lit).map((l) => <path class="brn-link" d={l.d} />)}
+      {links.filter((l) => l.lit).map((l) => <path class="brn-link brn-link--lit" d={l.d} />)}
+      {nodes.flat().map((n) => <circle class:list={["brn-node", { "brn-node--lit": n.lit }]} cx={f(n.x)} cy={f(n.y)} r={n.r} />)}
+      <circle class="brn-halo" cx={CX} cy={CY} r={DISC + 7} />
+      <circle class="brn-disc" cx={CX} cy={CY} r={DISC} />
+      <g class="brn-glyph" transform={`translate(${CX} ${CY})`}>
+        {BRAIN.map((d) => <path d={d} />)}
+      </g>
+    </svg>
   )
 }
 
@@ -405,81 +458,141 @@ const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6
     background: var(--ghost);
   }
 
-  /* Access: who can use what, link by link. */
-  .chain {
-    display: flex;
-    align-items: center;
-  }
-  .node {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 13px 5px 5px;
-    border-radius: 999px;
-    font-weight: 500;
-    background: #ffffff;
-    box-shadow: inset 0 0 0 1px var(--ghost);
-  }
-  .link {
+  /* Access: one person's level, stepping up from Off to Can manage. The pill
+     opens from a single dot, and one more dot fills green at each level. */
+  .lvl {
     display: grid;
-    width: 30px;
+    grid-template-columns: 96px auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 10px 16px;
   }
-  .link i {
-    position: relative;
-    height: 1.6px;
-    background: var(--mid);
-  }
-  .link i::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: -3.2px;
-    border: 4px solid transparent;
-    border-left: 6px solid var(--mid);
-    border-right: 0;
-  }
-  .av {
+  /* Each stack holds every state in one cell; only the current one shows. */
+  .lvl-who,
+  .lvl-name {
     display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    font-size: 10.5px;
+  }
+  .lvl-who > span,
+  .lvl-name > span {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 360ms ease,
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lvl-who > span.on,
+  .lvl-name > span.on {
+    opacity: 1;
+    transform: none;
+  }
+  .lvl-who {
+    grid-area: 1 / 2;
+    min-height: 1.3em;
     font-weight: 600;
     color: var(--deep);
-    background: var(--mist);
   }
-  .av--agent {
-    background: var(--deep);
+  .lvl-name {
+    grid-area: 2 / 1;
+    justify-items: end;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--moss);
   }
-  .av--key {
-    color: #ffffff;
-    background: var(--moss);
-  }
-
-  /* Brain: the folders one agent can reach. */
-  .tree {
-    display: grid;
-    width: 280px;
-    padding: 6px 16px;
-  }
-  .tree li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 9px 0;
-  }
-  .tree li + li {
-    border-top: 1px solid var(--ghost);
-  }
-  .tree li.off {
+  .lvl-name .lvl-off {
     color: var(--moss-3);
   }
-  .tree li.off em {
-    display: inline-flex;
+  .lvl-pill {
+    grid-area: 2 / 2;
+    display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 16px;
+    width: 48px;
+    height: 48px;
+    /* Centres the first dot while the pill is closed. */
+    padding-left: 18.5px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow:
+      inset 0 0 0 1px var(--ghost),
+      0 6px 16px -10px rgba(18, 40, 26, 0.35);
+    transition: width 640ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lvl-pill.on {
+    width: 144px;
+  }
+  .lvl-pill i {
+    flex: none;
+    border-radius: 50%;
+    background: var(--ghost);
+    transition:
+      background 360ms ease,
+      opacity 360ms ease;
+  }
+  /* Closed, the pill shows only its first dot. */
+  .lvl-pill:not(.on) i + i {
+    opacity: 0;
+  }
+  .lvl-pill i:nth-child(1) { width: 11px; height: 11px; }
+  .lvl-pill i:nth-child(2) { width: 14px; height: 14px; }
+  .lvl-pill i:nth-child(3) { width: 17px; height: 17px; }
+  .lvl-pill i:nth-child(4) { width: 21px; height: 21px; }
+  .lvl-pill i.on {
+    background: var(--mid);
+  }
+
+  /* Brain: hairlines only, so every stroke stays 1px however far the tile zooms it down. */
+  .brn {
+    display: block;
+    overflow: visible;
+  }
+  .brn :is(ellipse, line, circle, path) {
+    vector-effect: non-scaling-stroke;
+  }
+  .brn-layer {
+    fill: none;
+    stroke: var(--moss-4);
+    stroke-width: 1;
+  }
+  .brn-layer--edge {
+    stroke-dasharray: 2 5;
+    stroke-linecap: round;
+  }
+  .brn-link {
+    fill: none;
+    stroke: var(--moss-4);
+    stroke-width: 1;
+  }
+  .brn-link--lit {
+    stroke: var(--mid);
+    stroke-width: 1.25;
+  }
+  .brn-node {
+    fill: #ffffff;
+    stroke: var(--moss-3);
+    stroke-width: 1;
+  }
+  .brn-node--lit {
+    fill: var(--deep);
+    stroke: var(--deep);
+  }
+  .brn-halo {
+    fill: none;
+    stroke: var(--pale);
+    stroke-width: 1;
+  }
+  .brn-disc {
+    fill: #ffffff;
+    stroke: var(--deep);
+    stroke-width: 1.25;
+  }
+  .brn-glyph {
+    fill: none;
+    stroke: var(--deep);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   /* Budgets: an allowance each, spent so far. */
