@@ -31,7 +31,8 @@ const ARRIVE = [0, 3, 9, 6, 1, 10, 4, 7, 2, 5, 8];
   <div class="frame">
     <header class="head">
       <h2 id="harness-title" class="title" data-reveal>{h.title}</h2>
-      <span class="title-rule" aria-hidden="true" data-reveal style="--d:1"></span>
+      <p class="intro" data-reveal style="--d:1">{h.intro}</p>
+      <span class="title-rule" aria-hidden="true" data-reveal style="--d:2"></span>
     </header>
 
     <!-- Bento grid: a text tile at the centre, then one tile per item, a few of them double size. Each item tile is a preview: one
@@ -235,6 +236,13 @@ const ARRIVE = [0, 3, 9, 6, 1, 10, 4, 7, 2, 5, 8];
     line-height: 1.02;
     letter-spacing: -0.035em;
     color: var(--ink-dark);
+    text-wrap: balance;
+  }
+  .intro {
+    max-width: 700px;
+    font-size: clamp(17px, 1.35vw, 20px);
+    line-height: 1.55;
+    color: var(--ink-mid);
     text-wrap: balance;
   }
   .title-rule {

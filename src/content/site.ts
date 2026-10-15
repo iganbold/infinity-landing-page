@@ -70,7 +70,8 @@ export const howItWorks = {
 } as const;
 
 export const harness = {
-  title: "What’s inside",
+  title: "Engineered for outcomes",
+  intro: "Great outcomes depend on what you don’t see. We engineer the foundations that make them reliable, repeatable, and better over time.",
   /** The text tile at the middle of the grid. */
   tile: "Organizational Harness",
   /**
