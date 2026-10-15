@@ -6,8 +6,7 @@
 export const site = {
   name: "Infinity",
   tagline: "Outcome Machines for Organizations",
-  description:
-    "Outcome machines are durable agents built on your organization’s knowledge, tools, memory and guardrails. They grow stronger with every run.",
+  description: "Infinity builds outcome machines, durable agents that own business outcomes and grow stronger with every run.",
   nav: [
     { label: "Home", href: "/" },
     { label: "Product", href: "/#product", more: true },

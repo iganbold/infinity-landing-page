@@ -16,6 +16,37 @@ const { title = `${site.name} — ${site.tagline}`, description = site.descripti
 // Share tags need absolute URLs, on the site's own domain (astro.config.mjs `site`).
 const url = new URL(Astro.url.pathname, Astro.site);
 const imageUrl = new URL(image, Astro.site);
+const home = new URL("/", Astro.site);
+/** Structured data: who we are, the site, and this page. */
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${home}#organization`,
+      name: site.name,
+      url: home.href,
+      logo: new URL("/icon-512.png", Astro.site).href,
+      description: site.description,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${home}#website`,
+      name: site.name,
+      url: home.href,
+      publisher: { "@id": `${home}#organization` },
+    },
+    {
+      "@type": "WebPage",
+      "@id": `${url}#webpage`,
+      url: url.href,
+      name: title,
+      description,
+      isPartOf: { "@id": `${home}#website` },
+      primaryImageOfPage: imageUrl.href,
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -26,8 +57,14 @@ const imageUrl = new URL(image, Astro.site);
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#1d3a2b" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={url} />
+    <!-- Icons: .ico and PNG for Google and older browsers, SVG for the rest. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={url} />
@@ -41,6 +78,8 @@ const imageUrl = new URL(image, Astro.site);
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={`The ${site.name} mark over a sunrise landscape`} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
