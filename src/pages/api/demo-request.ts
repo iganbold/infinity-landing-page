@@ -79,7 +79,7 @@ export const POST: APIRoute = async ({ request }) => {
         ],
       },
       ...(data.outcome
-        ? [{ type: "section", text: { type: "mrkdwn", text: `*Outcome they'd hand to a System*\n>${esc(data.outcome).replace(/\n/g, "\n>")}` } }]
+        ? [{ type: "section", text: { type: "mrkdwn", text: `*What their first outcome machine should own*\n>${esc(data.outcome).replace(/\n/g, "\n>")}` } }]
         : []),
       {
         type: "context",

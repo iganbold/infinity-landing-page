@@ -223,8 +223,8 @@ export const harness = {
 } as const;
 
 export const footer = {
-  title: "Put a System to work\non your next outcome.",
-  body: "Tell us what you want to achieve. We'll show you how a System takes it on.",
+  title: "Put an outcome machine\nto work.",
+  body: "Tell us what you want to achieve. We'll show you how an outcome machine takes it on.",
   demo: { label: "Book a demo", href: "/request-demo" },
   /** Replace with the real inbox. */
   contact: { label: "Contact us", href: "mailto:hello@example.com" },
@@ -237,7 +237,7 @@ export const footer = {
 } as const;
 
 export const bookDemo = {
-  title: "Let's put a System\nto work.",
+  title: "Meet your first\noutcome machine.",
   body: "Tell us a little about your team. We'll reach out to set up a walkthrough.",
   fields: {
     firstName: "First name",
@@ -250,7 +250,7 @@ export const bookDemo = {
     sizes: ["1–200", "201–500", "501–1K", "1K–5K", "5K–10K", "10K+"],
     country: "Country",
     countryPlaceholder: "Select a country",
-    outcome: "What outcome would you hand to a System?",
+    outcome: "What should your first outcome machine own?",
     outcomeHint: "For example: keep our support backlog under 24 hours.",
     optional: "Optional",
   },
