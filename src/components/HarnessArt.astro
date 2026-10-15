@@ -6,6 +6,7 @@
  * tile. The detail view (HarnessDetail.astro) carries the full product view.
  */
 import { MARK } from "@/lib/mark";
+import { CONNECTOR_ROWS, MODEL_MARKS, SURFACE_MARKS } from "@/lib/connectors";
 
 interface Props {
   name: string;
@@ -13,6 +14,26 @@ interface Props {
 const { name } = Astro.props;
 
 const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6a2.5 2.5 0 0 1 5 0V5";
+
+/** Models: the choices an agent can run on, the picked one marked. Scrolls as an endless list. */
+const MODELS = [
+  { name: "Included models", on: false },
+  { name: "Claude", on: true },
+  { name: "ChatGPT", on: false },
+  { name: "Baseten", on: false },
+].map((m) => ({ ...m, mark: MODEL_MARKS[m.name] }));
+
+/** Surfaces on the orbit round the agents, a quarter turn apart. */
+const ORBIT = ["Slack", "Discord", "Web chat", "Scheduled job"].map((name, i) => ({ name, mark: SURFACE_MARKS[name], angle: 45 + i * 90 }));
+
+/** Audit: log entries, newest first. Scrolls down as an endless list. */
+const AUDIT = [
+  { what: "connection.use", at: "14:02" },
+  { what: "tool.invoke", at: "14:02" },
+  { what: "grant_request", at: "13:58" },
+  { what: "skill.install", at: "13:41" },
+  { what: "connection.use", at: "13:40" },
+];
 
 /** Access: the levels a person can hold, lowest first (the same words as the detail view). */
 const LEVELS = [
@@ -27,23 +48,29 @@ const LEVELS = [
  * Company brain: a brain at the centre and three layers of knowledge round
  * it, branching outward: six nodes, each forking into two, then two again.
  * A few branches are lit, what one agent draws on. The outer layer is dashed:
- * the brain's boundary.
+ * the brain's boundary. The network is laid out as a flat disc of circles
+ * round (0, 0), then squashed by TILT into ellipses, so it can turn in place
+ * like a disc seen at an angle while the brain stays upright.
  */
-const BW = 440;
-const BH = 300;
+const BW = 240;
+const BH = 172;
 const [CX, CY] = [BW / 2, BH / 2];
-const DISC = 31;
+const DISC = 24;
+const TILT = 0.7;
 const LAYERS = [
-  { rx: 80, ry: 56, r: 4 },
-  { rx: 136, ry: 94, r: 3.4 },
-  { rx: 190, ry: 128, r: 3 },
+  { R: 46, r: 3.4 },
+  { R: 76, r: 3 },
+  { R: 106, r: 2.6 },
 ];
 type Node = { a: number; x: number; y: number; r: number; parent: number; lit: boolean };
-const at = (k: number, a: number) => [CX + LAYERS[k].rx * Math.cos(a), CY + LAYERS[k].ry * Math.sin(a)];
-const node = (k: number, a: number, parent: number): Node => {
-  const [x, y] = at(k, a);
-  return { a, x, y, r: LAYERS[k].r, parent, lit: false };
-};
+const node = (k: number, a: number, parent: number): Node => ({
+  a,
+  x: LAYERS[k].R * Math.cos(a),
+  y: LAYERS[k].R * Math.sin(a),
+  r: LAYERS[k].r,
+  parent,
+  lit: false,
+});
 const STEP = (Math.PI * 2) / 6;
 const nodes: Node[][] = [Array.from({ length: 6 }, (_, i) => node(0, (i + 0.5) * STEP - Math.PI / 2, -1))];
 for (let k = 1; k < LAYERS.length; k++) {
@@ -58,13 +85,11 @@ const f = (v: number) => v.toFixed(1);
 /** Each branch leaves its parent heading outward, then bends into its child. */
 const links = nodes.flatMap((layer, k) =>
   layer.map((n) => {
-    if (k === 0) {
-      const d = Math.hypot(n.x - CX, n.y - CY);
-      return { d: `M${f(CX + ((n.x - CX) / d) * DISC)} ${f(CY + ((n.y - CY) / d) * DISC)}L${f(n.x)} ${f(n.y)}`, lit: n.lit };
-    }
+    // The first branches start under the disc, which is drawn over them.
+    if (k === 0) return { d: `M${f(10 * Math.cos(n.a))} ${f(10 * Math.sin(n.a))}L${f(n.x)} ${f(n.y)}`, lit: n.lit };
     const p = nodes[k - 1][n.parent];
-    const mid = { rx: (LAYERS[k - 1].rx + LAYERS[k].rx) / 2, ry: (LAYERS[k - 1].ry + LAYERS[k].ry) / 2 };
-    const [qx, qy] = [CX + mid.rx * Math.cos(p.a), CY + mid.ry * Math.sin(p.a)];
+    const mid = (LAYERS[k - 1].R + LAYERS[k].R) / 2;
+    const [qx, qy] = [mid * Math.cos(p.a), mid * Math.sin(p.a)];
     return { d: `M${f(p.x)} ${f(p.y)}Q${f(qx)} ${f(qy)} ${f(n.x)} ${f(n.y)}`, lit: n.lit };
   }),
 );
@@ -104,17 +129,21 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
 {
   name === "sandbox" && (
     <div class="ha sbx">
-      <span class="sbx-box">
+      <div class="sbx-box">
         <span class="sys">
           <svg width="22" height="14" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
         </span>
-      </span>
+        <ul class="sbx-files">
+          <li><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M1 2.5A1 1 0 0 1 2 1.5h3l1.2 1.5H11a1 1 0 0 1 1 1V10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg>workspace/</li>
+          <li><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M3 1h4.5L10 3.5V11H3z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg>notes.md</li>
+          <li><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M3 1h4.5L10 3.5V11H3z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg>report.csv</li>
+        </ul>
+      </div>
       <ul class="sbx-out">
         {["Platform", "Database", "Keys"].map((o) => (
           <li>
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <circle cx="7" cy="7" r="6.4" fill="#fff" />
-              <path d="M4.8 4.8l4.4 4.4m0-4.4l-4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            <svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true">
+              <path d="M4.2 4.2l5.6 5.6m0-5.6l-5.6 5.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
             </svg>
             {o}
           </li>
@@ -139,13 +168,21 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
 {
   name === "deployment" && (
     <div class="ha dep">
-      <span class="dep-edge">Cloudflare</span>
-      <svg class="dep-arrow" width="22" height="12" viewBox="0 0 22 12" aria-hidden="true">
-        <path d="M1 6h19M15 1.5L20 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      <span class="dep-edge">Infinity cloud</span>
+      <svg class="dep-arrow" width="12" height="22" viewBox="0 0 12 22" aria-hidden="true">
+        <path d="M6 1v19M1.5 15L6 20l4.5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <span class="dep-wall">
-        {["Agents", "Data", "Keys"].map((c) => <span><i />{c}</span>)}
-      </span>
+      <div class="dep-cloud">
+        <span class="dep-head">
+          <svg width="18" height="14" viewBox="0 0 24 18" aria-hidden="true">
+            <path d="M6.5 16.5h11a4.5 4.5 0 0 0 .7-8.95A6 6 0 0 0 6.6 6.1 5.2 5.2 0 0 0 6.5 16.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          </svg>
+          Your cloud
+        </span>
+        <span class="dep-items">
+          {["Agents", "Data", "Keys"].map((c) => <span><i />{c}</span>)}
+        </span>
+      </div>
     </div>
   )
 }
@@ -169,15 +206,19 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
 {
   name === "brain" && (
     <svg class="ha brn" width={BW} height={BH} viewBox={`0 0 ${BW} ${BH}`} aria-hidden="true">
-      {LAYERS.map((l, k) => (
-        <ellipse class:list={["brn-layer", { "brn-layer--edge": k === LAYERS.length - 1 }]} cx={CX} cy={CY} rx={l.rx} ry={l.ry} />
-      ))}
-      {links.filter((l) => !l.lit).map((l) => <path class="brn-link" d={l.d} />)}
-      {links.filter((l) => l.lit).map((l) => <path class="brn-link brn-link--lit" d={l.d} />)}
-      {nodes.flat().map((n) => <circle class:list={["brn-node", { "brn-node--lit": n.lit }]} cx={f(n.x)} cy={f(n.y)} r={n.r} />)}
-      <circle class="brn-halo" cx={CX} cy={CY} r={DISC + 7} />
+      <g transform={`translate(${CX} ${CY}) scale(1 ${TILT})`}>
+        <g class="brn-spin">
+          {LAYERS.map((l, k) => (
+            <circle class:list={["brn-layer", { "brn-layer--edge": k === LAYERS.length - 1 }]} r={l.R} />
+          ))}
+          {links.filter((l) => !l.lit).map((l) => <path class="brn-link" d={l.d} />)}
+          {links.filter((l) => l.lit).map((l) => <path class="brn-link brn-link--lit" d={l.d} />)}
+          {nodes.flat().map((n) => <circle class:list={["brn-node", { "brn-node--lit": n.lit }]} cx={f(n.x)} cy={f(n.y)} r={n.r} />)}
+        </g>
+      </g>
+      <circle class="brn-halo" cx={CX} cy={CY} r={DISC + 5} />
       <circle class="brn-disc" cx={CX} cy={CY} r={DISC} />
-      <g class="brn-glyph" transform={`translate(${CX} ${CY})`}>
+      <g class="brn-glyph" transform={`translate(${CX} ${CY}) scale(${DISC / 31})`}>
         {BRAIN.map((d) => <path d={d} />)}
       </g>
     </svg>
@@ -196,53 +237,163 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
 
 {
   name === "audit" && (
-    <ul class="ha audit">
-      <li><code>connection.use</code><time>14:02</time></li>
-      <li><code>tool.invoke</code><time>14:02</time></li>
-      <li><code>grant_request</code><time>13:58</time></li>
-    </ul>
+    <div class="ha audit">
+      <ul class="aud-track">
+        {[...AUDIT, ...AUDIT].map((e) => (
+          <li>
+            <code>{e.what}</code>
+            <time>{e.at}</time>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
 {
   name === "models" && (
-    <ul class="ha models">
-      <li><i />Included models</li>
-      <li class="on"><i />Anthropic API key</li>
-      <li><i />ChatGPT subscription</li>
-    </ul>
+    <div class="ha models">
+      <ul class="mdl-track">
+        {[...MODELS, ...MODELS].map((m) => (
+          <li class:list={{ on: m.on }}>
+            <i />
+            {m.mark ? (
+              <svg class="mdl-mark" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path d={m.mark.path} fill={m.mark.color} />
+              </svg>
+            ) : m.name === "Included models" ? (
+              <span class="mdl-mark mdl-mark--ours">
+                <svg width="12" height="8" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
+              </span>
+            ) : (
+              <span class="mdl-mark mdl-mark--mono">{m.name[0]}</span>
+            )}
+            {m.name}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
 {
-  name === "skills" && (
-    <div class="ha skills">
-      <span class="sk-card sk-card--back2" />
-      <span class="sk-card sk-card--back1" />
-      <span class="sk-card">
-        <svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true">
-          <path d="M2.5 1.5h6l3 3v10h-9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-          <path d="M5 8h4M5 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+  name === "connectors" && (
+    <div class="ha cn">
+      {CONNECTOR_ROWS.map((row, r) => (
+        <div class:list={["cn-row", { "cn-row--back": r % 2 === 1 }]}>
+          <ul class="cn-track">
+            {[...row, ...row].map((c) => (
+              <li>
+                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d={c.path} fill={c.color} />
+                </svg>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+{
+  name === "code" && (
+    <div class="ha cm">
+      <code class="cm-code">
+        <span><b>const</b> found = <b>await</b></span>
+        <span class="cm-in">tools.<em>search</em>(<s>"issues"</s>)</span>
+        <span>tools.<em>call</em>(found[0])</span>
+      </code>
+      <span class="cm-ok">
+        <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3.5 8.4l2.9 2.9 6.1-6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        <code>release-notes</code>
-        <b class="ver">v1.3</b>
+        Each call checked
       </span>
     </div>
   )
 }
 
 {
-  name === "surfaces" && (
-    <div class="ha srf">
-      <ul class="srf-in">
-        {["Slack", "Discord", "Web chat", "Scheduled job"].map((s) => <li><i />{s}</li>)}
+  name === "jobs" && (
+    <div class="ha job">
+      <ul class="job-trig">
+        <li class="on">Schedule</li>
+        <li>API</li>
+        <li>Run now</li>
       </ul>
-      <svg class="srf-arrow" width="30" height="12" viewBox="0 0 30 12" aria-hidden="true">
-        <path d="M1 6h27M23 1.5L28 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <span class="srf-agent">
-        <svg width="18" height="12" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
-        Infinity Agent
+      <div class="job-card">
+        <span class="job-name">
+          <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path class="job-hand" d="M8 4.6V8l2.4 1.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Weekly digest
+        </span>
+        <small>Mondays at 9:00 AM</small>
+        <span class="job-runs" aria-hidden="true">
+          <i /><i /><i /><i /><i class="now" />
+        </span>
+      </div>
+    </div>
+  )
+}
+
+{
+  name === "skills" && (
+    <div class="ha mem">
+      <div class="mem-card">
+        <span class="mem-head">
+          <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M4 2.5h8v11l-4-2.6-4 2.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+          </svg>
+          Memory
+        </span>
+        <span class="mem-line">Prefers short summaries</span>
+        <span class="mem-line">Reports go to #ops</span>
+      </div>
+      <ul class="mem-skills">
+        <li class="mem-label">Skills</li>
+        <li>weekly-digest</li>
+        <li>triage</li>
+      </ul>
+    </div>
+  )
+}
+
+{
+  name === "surfaces" && (
+    <div class="ha orb">
+      <span class="orb-ring" />
+      <span class="orb-ring orb-ring--in" />
+      <span class="orb-agents">
+        {[0, 1, 2].map(() => (
+          <span class="orb-agent">
+            <svg width="16" height="10" viewBox="0 0 40 25" aria-hidden="true"><path d={MARK} class="mark" /></svg>
+          </span>
+        ))}
+      </span>
+      <span class="orb-spin">
+        {ORBIT.map((o) => (
+          <span class="orb-slot" style={`--a:${o.angle}deg`}>
+            <span class="orb-face">
+              {o.mark ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d={o.mark.path} fill={o.mark.color} />
+                </svg>
+              ) : o.name === "Web chat" ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A1.5 1.5 0 0 1 4 14.5z" fill="none" stroke="#2f7a55" stroke-width="1.8" stroke-linejoin="round" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8.5" fill="none" stroke="#2f7a55" stroke-width="1.8" />
+                  <path d="M12 7.5V12l3 2" fill="none" stroke="#2f7a55" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              )}
+            </span>
+          </span>
+        ))}
       </span>
     </div>
   )
@@ -279,15 +430,17 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     stroke-linecap: round;
   }
 
-  /* Credentials: what the agent holds, what the API gets. */
+  /* Credentials: what the agent holds, above what the API gets. */
   .cred {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: 14px;
+    padding: 12px;
   }
   .cr-chip {
     display: grid;
     gap: 4px;
+    width: 156px;
     padding: 11px 14px;
     border-radius: 13px;
     background: var(--wash);
@@ -315,17 +468,18 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     position: relative;
     display: grid;
     place-items: center;
-    width: 60px;
-    height: 34px;
+    width: 34px;
+    height: 46px;
     color: #ffffff;
   }
   .cr-lock::before {
     content: "";
     position: absolute;
-    left: 4px;
-    right: 4px;
-    top: 50%;
-    height: 1.6px;
+    top: 3px;
+    bottom: 3px;
+    left: 50%;
+    width: 1.6px;
+    margin-left: -0.8px;
     background: var(--mid);
   }
   .cr-lock svg {
@@ -336,31 +490,51 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     background: var(--deep);
   }
 
-  /* Sandbox: a dashed boundary, cut off from what sits outside it. */
+  /* Sandbox: the agent and its files inside a dashed boundary; the
+     platform, its database and stored keys stay outside it. */
   .sbx {
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+  }
+  .sbx-box {
     display: flex;
     align-items: center;
     gap: 14px;
-  }
-  .sbx-box {
-    display: grid;
-    place-items: center;
-    width: 76px;
-    height: 76px;
+    padding: 12px 16px 12px 14px;
     border: 1.6px dashed var(--deep);
-    border-radius: 18px;
+    border-radius: 16px;
     background: #ffffff;
   }
   .sys {
     display: grid;
+    flex: none;
     place-items: center;
     width: 38px;
     height: 38px;
     border-radius: 50%;
     background: var(--deep);
   }
-  .sbx-out {
+  .sbx-files {
     display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--moss-2);
+  }
+  .sbx-files li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .sbx-files svg {
+    color: var(--deep);
+  }
+  .sbx-out {
+    display: flex;
     gap: 5px;
     margin: 0;
     padding: 0;
@@ -369,26 +543,24 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
   .sbx-out li {
     display: flex;
     align-items: center;
-    gap: 7px;
-    height: 24px;
-    padding: 0 11px 0 5px;
+    gap: 4px;
+    height: 22px;
+    padding: 0 9px 0 6px;
     border-radius: 999px;
+    font-size: 12px;
     font-weight: 500;
-    color: var(--moss-2);
+    color: var(--moss-3);
     background: var(--ghost);
   }
-  .sbx-out svg {
-    color: var(--moss-3);
-  }
 
-  /* Deployment: one way in, through one wall. */
+  /* Deployment: from the Infinity cloud, down into your own cloud. */
   .dep {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
   }
   .dep-edge {
-    padding: 6px 11px;
+    padding: 5px 11px;
     border-radius: 999px;
     font-size: 12px;
     font-weight: 500;
@@ -398,26 +570,37 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
   .dep-arrow {
     color: var(--moss);
   }
-  .dep-wall {
+  .dep-cloud {
     display: grid;
-    gap: 4px;
-    padding: 8px;
+    gap: 9px;
+    padding: 10px 12px 12px;
     border: 2px solid var(--deep);
-    border-radius: 15px;
+    border-radius: 16px;
     background: #ffffff;
   }
-  .dep-wall span {
+  .dep-head {
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 92px;
+    gap: 7px;
+    font-weight: 600;
+    color: var(--deep);
+  }
+  .dep-items {
+    display: flex;
+    gap: 5px;
+  }
+  .dep-items span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     height: 22px;
-    padding: 0 10px;
+    padding: 0 9px;
     border-radius: 999px;
+    font-size: 12px;
     font-weight: 500;
     background: var(--wash);
   }
-  .dep-wall i {
+  .dep-items i {
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -462,10 +645,8 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
      opens from a single dot, and one more dot fills green at each level. */
   .lvl {
     display: grid;
-    grid-template-columns: 96px auto;
-    grid-template-rows: auto auto;
-    align-items: center;
-    gap: 10px 16px;
+    justify-items: center;
+    gap: 10px;
   }
   /* Each stack holds every state in one cell; only the current one shows. */
   .lvl-who,
@@ -476,25 +657,50 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
   .lvl-name > span {
     grid-area: 1 / 1;
     opacity: 0;
+  }
+  .lvl-name > span {
     transform: translateY(4px);
     transition:
       opacity 360ms ease,
       transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .lvl-who > span.on,
   .lvl-name > span.on {
     opacity: 1;
     transform: none;
   }
+  /* The caption flips like a flap board: the old one tips away, the new one
+     swings down into place. */
+  .lvl-who > span {
+    transform: perspective(240px) rotateX(90deg);
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
+    transition:
+      opacity 260ms ease,
+      transform 300ms ease-in;
+  }
+  .lvl-who > span.on {
+    opacity: 1;
+    transform: none;
+    animation: lvl-flip 560ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes lvl-flip {
+    from {
+      opacity: 0;
+      transform: perspective(240px) rotateX(-90deg);
+    }
+    40% {
+      opacity: 1;
+    }
+  }
   .lvl-who {
-    grid-area: 1 / 2;
+    grid-area: 1 / 1;
     min-height: 1.3em;
     font-weight: 600;
     color: var(--deep);
   }
   .lvl-name {
-    grid-area: 2 / 1;
-    justify-items: end;
+    grid-area: 3 / 1;
+    justify-items: center;
     font-size: 14px;
     font-weight: 500;
     color: var(--moss);
@@ -503,7 +709,7 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     color: var(--moss-3);
   }
   .lvl-pill {
-    grid-area: 2 / 2;
+    grid-area: 2 / 1;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -521,6 +727,30 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
   }
   .lvl-pill.on {
     width: 144px;
+  }
+  /* A little squash on every change of level. Odd and even steps use twin
+     animations, so each step starts it afresh. */
+  .lvl:is([data-step="1"], [data-step="3"]) .lvl-pill {
+    animation: lvl-squish-a 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .lvl:is([data-step="0"], [data-step="2"], [data-step="4"]) .lvl-pill {
+    animation: lvl-squish-b 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes lvl-squish-a {
+    30% {
+      transform: scale(1.05, 0.9);
+    }
+    60% {
+      transform: scale(0.98, 1.04);
+    }
+  }
+  @keyframes lvl-squish-b {
+    30% {
+      transform: scale(1.05, 0.9);
+    }
+    60% {
+      transform: scale(0.98, 1.04);
+    }
   }
   .lvl-pill i {
     flex: none;
@@ -540,6 +770,22 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
   .lvl-pill i:nth-child(4) { width: 21px; height: 21px; }
   .lvl-pill i.on {
     background: var(--mid);
+    animation: lvl-pop 560ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  /* A squishy pop as a dot fills: up, under, a touch over, settled. */
+  @keyframes lvl-pop {
+    0% {
+      transform: scale(0.6);
+    }
+    35% {
+      transform: scale(1.4, 1.25);
+    }
+    60% {
+      transform: scale(0.88, 0.95);
+    }
+    80% {
+      transform: scale(1.06);
+    }
   }
 
   /* Brain: hairlines only, so every stroke stays 1px however far the tile zooms it down. */
@@ -626,10 +872,33 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     background: var(--moss);
   }
 
-  /* Audit: three lines of the log. */
+  /* Audit: the log, sliding slowly downward as entries keep arriving at
+     the top. The list is there twice, so moving it by one copy loops without
+     a jump. Still by default; it moves only under the pointer. */
   .audit {
-    display: grid;
     width: 180px;
+    height: 104px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+    mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+  }
+  .aud-track {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform: translateY(-50%);
+    animation: aud-down 18s linear infinite paused;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .aud-track {
+    animation-play-state: running;
+  }
+  @keyframes aud-down {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
   .audit li {
     display: flex;
@@ -637,9 +906,7 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     justify-content: space-between;
     gap: 10px;
     padding: 8px 0;
-  }
-  .audit li + li {
-    border-top: 1px solid var(--ghost);
+    border-bottom: 1px solid var(--ghost);
   }
   .audit time {
     font-size: 12px;
@@ -647,11 +914,55 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     font-variant-numeric: tabular-nums;
   }
 
-  /* Models: the agent's pick. */
+  /* Models: the agent's pick, in a list that scrolls slowly upward. The list
+     is there twice, so moving it up by one copy loops without a jump. */
   .models {
+    width: 186px;
+    height: 104px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
+    mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
+  }
+  .mdl-track {
     display: grid;
     gap: 3px;
-    width: 186px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: mdl-scroll 16s linear infinite;
+  }
+  /* Half the track, plus half a gap, is exactly one copy of the list. */
+  @keyframes mdl-scroll {
+    to {
+      transform: translateY(calc(-50% - 1.5px));
+    }
+  }
+  /* Still by default; it scrolls only while the tile is under the pointer or focused. */
+  .mdl-track {
+    animation-play-state: paused;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .mdl-track {
+    animation-play-state: running;
+  }
+  .mdl-mark {
+    flex: none;
+  }
+  .mdl-mark--ours,
+  .mdl-mark--mono {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+  }
+  .mdl-mark--ours {
+    background: var(--deep);
+  }
+  .mdl-mark--mono {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--moss);
   }
   .models li {
     display: flex;
@@ -678,91 +989,493 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     box-shadow: inset 0 0 0 4px var(--deep);
   }
 
-  /* Skills: a published package on its stack of earlier versions. */
-  .skills {
+  /* Memory and skills: what the agent remembers, and the skills it carries. */
+  .mem {
     display: grid;
-    width: 196px;
-    padding-top: 18px;
-  }
-  .sk-card {
-    position: relative;
-    z-index: 2;
-    grid-area: 1 / 1;
-    display: flex;
-    align-items: center;
+    justify-items: stretch;
     gap: 9px;
-    height: 48px;
-    padding: 0 12px 0 14px;
-    border-radius: 13px;
+  }
+  .mem-card {
+    display: grid;
+    gap: 5px;
+    width: 100%;
+    padding: 11px 13px 12px;
+    border-radius: 14px;
     background: #ffffff;
-    box-shadow: 0 10px 24px -16px rgba(18, 40, 26, 0.45);
-  }
-  .sk-card--back1 {
-    z-index: 1;
-    transform: translateY(-9px) scale(0.94);
-    opacity: 0.75;
     box-shadow: inset 0 0 0 1px var(--ghost);
   }
-  .sk-card--back2 {
-    z-index: 0;
-    transform: translateY(-18px) scale(0.88);
-    opacity: 0.5;
-    box-shadow: inset 0 0 0 1px var(--ghost);
-  }
-  .ver {
-    margin-left: auto;
-    padding: 1px 7px;
-    border-radius: 999px;
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--deep);
-    background: var(--mist);
-  }
-
-  /* Surfaces: every surface into one agent. */
-  .srf {
+  .mem-head {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 7px;
+    margin-bottom: 2px;
+    font-weight: 600;
+    color: var(--deep);
   }
-  .srf-in {
-    display: grid;
-    grid-template-columns: auto auto;
+  .mem-line {
+    padding-left: 9px;
+    border-left: 2px solid var(--pale);
+    font-size: 12.5px;
+    color: var(--moss-2);
+  }
+  .mem-skills {
+    display: flex;
     gap: 6px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
-  .srf-in li {
+  .mem-skills li {
     display: flex;
     align-items: center;
-    gap: 7px;
-    height: 28px;
-    padding: 0 12px 0 10px;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
     border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--moss);
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+  .mem-skills .mem-label {
+    padding: 0 2px;
+    font-family: var(--font);
+    font-weight: 600;
+    color: var(--deep);
+    background: none;
+    box-shadow: none;
+  }
+
+  /* Surfaces: a team of agents at the centre, the surfaces they work on
+     riding a circular orbit round them. Still by default; the orbit turns
+     only under the pointer (or with focus inside), the marks staying upright. */
+  .orb {
+    position: relative;
+    width: 168px;
+    height: 168px;
+    --r: 66px;
+  }
+  .orb-ring {
+    position: absolute;
+    inset: calc(50% - var(--r));
+    border: 1px solid var(--moss-4);
+    border-radius: 50%;
+  }
+  .orb-ring--in {
+    inset: calc(50% - var(--r) * 0.55);
+    border-style: dashed;
+    border-color: var(--pale);
+  }
+  .orb-agents {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    transform: translate(-50%, -50%);
+  }
+  .orb-agent {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--deep);
+    box-shadow: 0 0 0 2.5px var(--wash);
+  }
+  .orb-agent + .orb-agent {
+    margin-left: -7px;
+  }
+  .orb-spin {
+    position: absolute;
+    inset: 0;
+    animation: orb-turn 40s linear infinite paused;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .orb-spin,
+  :global([data-tile]:is(:hover, :focus-within)) .orb-face {
+    animation-play-state: running;
+  }
+  .orb-slot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: rotate(var(--a)) translateX(var(--r)) rotate(calc(-1 * var(--a)));
+  }
+  .orb-face {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow:
+      inset 0 0 0 1px var(--ghost),
+      0 6px 14px -10px rgba(18, 40, 26, 0.45);
+    animation: orb-turn 40s linear infinite reverse paused;
+  }
+  @keyframes orb-turn {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Connectors: two rows of connector marks drifting past, in opposite
+     directions. Each row holds its marks twice, so moving it by one copy
+     loops without a jump. */
+  .cn {
+    display: grid;
+    gap: 10px;
+    width: 210px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  }
+  .cn-row {
+    overflow: hidden;
+  }
+  .cn-track {
+    display: flex;
+    gap: 10px;
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: cn-drift 36s linear infinite;
+  }
+  .cn-row--back .cn-track {
+    animation-direction: reverse;
+  }
+  /* Half the track, plus half a gap, is exactly one copy of the row. */
+  @keyframes cn-drift {
+    to {
+      transform: translateX(calc(-50% - 5px));
+    }
+  }
+  /* Still by default; the rows drift only while the tile is under the pointer or focused. */
+  .cn-track {
+    animation-play-state: paused;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .cn-track {
+    animation-play-state: running;
+  }
+  .cn-track li {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+
+  /* Code mode: a few lines that find a tool and call it, every call checked. */
+  .cm {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+  }
+  .cm-code {
+    display: grid;
+    gap: 3px;
+    padding: 12px 14px;
+    border-radius: 13px;
+    color: #ffffff;
+    background: var(--moss);
+  }
+  .cm-code span {
+    display: block;
+  }
+  .cm-code .cm-in {
+    padding-left: 2ch;
+  }
+  .cm-code b {
+    font-weight: 400;
+    color: var(--pale);
+  }
+  .cm-code em {
+    font-style: normal;
+    color: #9fd35a;
+  }
+  .cm-code s {
+    text-decoration: none;
+    color: #f0c46a;
+  }
+  .cm-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 999px;
+    font-size: 12.5px;
     font-weight: 500;
+    color: var(--deep);
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--pale);
+  }
+
+  /* Jobs: how a job can start, and one job with its last few runs. */
+  .job {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+  }
+  .job-trig {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .job-trig li {
+    height: 26px;
+    padding: 0 11px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 26px;
     color: var(--moss-2);
     background: #ffffff;
     box-shadow: inset 0 0 0 1px var(--ghost);
   }
-  .srf-in i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--deep);
-  }
-  .srf-arrow {
-    color: var(--mid);
-  }
-  .srf-agent {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    height: 44px;
-    padding: 0 16px;
-    border-radius: 14px;
-    font-weight: 500;
+  .job-trig li.on {
     color: #ffffff;
     background: var(--deep);
+    box-shadow: none;
+  }
+  .job-card {
+    display: grid;
+    gap: 4px;
+    width: 188px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px var(--ghost);
+  }
+  .job-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+    color: var(--moss);
+  }
+  .job-name svg {
+    color: var(--deep);
+  }
+  .job-card small {
+    font-size: 12.5px;
+    color: var(--moss-3);
+  }
+  .job-runs {
+    display: flex;
+    gap: 5px;
+    margin-top: 6px;
+  }
+  .job-runs i {
+    width: 22px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--mid);
+  }
+  .job-runs i.now {
+    background: var(--ghost);
+  }
+  /* ------------------------------------------------ hover motion
+     The rest of the tiles act out their idea while under the pointer (or
+     with focus inside), and sit still otherwise. Each animation is declared
+     only under hover, so it starts afresh on every visit. */
+
+  /* Credentials: a key passes down through the lock. */
+  .cr-lock svg {
+    z-index: 1;
+  }
+  .cr-lock::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: var(--mid);
+    opacity: 0;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .cr-lock::after {
+    animation: cr-pass 1.6s ease-in-out infinite;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .cr-lock svg {
+    animation: cr-bump 1.6s ease-in-out infinite;
+  }
+  @keyframes cr-pass {
+    0% { opacity: 0; transform: translateY(0); }
+    15%, 85% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(34px); }
+  }
+  @keyframes cr-bump {
+    0%, 35%, 65%, 100% { transform: none; }
+    50% { transform: scale(1.12); }
+  }
+
+  /* Checks: the checkpoint scans each call, and its verdict pops. */
+  .verdicts li:nth-child(2) { --i: 1; }
+  .verdicts li:nth-child(3) { --i: 2; }
+  .verdicts li:nth-child(4) { --i: 3; }
+  .verdicts li:nth-child(5) { --i: 4; }
+  :global([data-tile]:is(:hover, :focus-within)) .verdicts li {
+    animation: chk-scan 2.6s ease-out infinite;
+    animation-delay: calc(var(--i, 0) * 0.3s);
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .verdicts .v {
+    animation: chk-pop 2.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+    animation-delay: calc(var(--i, 0) * 0.3s);
+  }
+  @keyframes chk-scan {
+    0%, 22%, 100% { transform: none; }
+    8% { transform: translateX(4px); }
+  }
+  @keyframes chk-pop {
+    0%, 26%, 100% { transform: none; }
+    12% { transform: scale(1.18); }
+  }
+
+  /* Deployment: traffic comes down from the Infinity cloud into your cloud. */
+  :global([data-tile]:is(:hover, :focus-within)) .dep-arrow {
+    animation: dep-bob 1.2s ease-in-out infinite;
+  }
+  .dep-items span:nth-child(2) i { --i: 1; }
+  .dep-items span:nth-child(3) i { --i: 2; }
+  :global([data-tile]:is(:hover, :focus-within)) .dep-items i {
+    animation: dep-pulse 1.2s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 0.2s);
+  }
+  @keyframes dep-bob {
+    50% { transform: translateY(4px); }
+  }
+  @keyframes dep-pulse {
+    50% { transform: scale(1.7); }
+  }
+
+  /* Sandbox: the agent works inside; outside things are refused in turn. */
+  :global([data-tile]:is(:hover, :focus-within)) .sys {
+    animation: sbx-glow 2.4s ease-in-out infinite;
+  }
+  .sbx-out li:nth-child(2) { --i: 1; }
+  .sbx-out li:nth-child(3) { --i: 2; }
+  :global([data-tile]:is(:hover, :focus-within)) .sbx-out li {
+    animation: sbx-no 2.4s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 0.8s);
+  }
+  @keyframes sbx-glow {
+    50% { box-shadow: 0 0 0 6px var(--mist); }
+  }
+  @keyframes sbx-no {
+    0%, 20%, 100% { transform: none; }
+    5% { transform: translateX(-2px); }
+    10% { transform: translateX(2px); }
+    15% { transform: translateX(-1px); }
+  }
+
+  /* Brain: what the agent draws on flows out along the lit branches. */
+  :global([data-tile]:is(:hover, :focus-within)) .brn-link--lit {
+    stroke-dasharray: 3 4;
+    animation: brn-flow 0.9s linear infinite;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .brn-node--lit {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: brn-blink 1.6s ease-in-out infinite;
+  }
+  .brn-spin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: brn-turn 60s linear infinite paused;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .brn-spin {
+    animation-play-state: running;
+  }
+  @keyframes brn-turn {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes brn-flow {
+    to { stroke-dashoffset: -7; }
+  }
+  @keyframes brn-blink {
+    50% { transform: scale(1.4); }
+  }
+
+  /* Budgets: each allowance fills to what's been spent. */
+  .budget li:nth-child(2) { --i: 1; }
+  .budget li:nth-child(3) { --i: 2; }
+  :global([data-tile]:is(:hover, :focus-within)) .budget li i::after {
+    animation: bud-fill 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    animation-delay: calc(var(--i, 0) * 0.15s);
+  }
+  @keyframes bud-fill {
+    0% { transform: scaleX(0); }
+    45%, 100% { transform: scaleX(var(--p)); }
+  }
+
+  /* Code mode: the program writes itself, then every call is checked. */
+  .cm-code span:nth-child(2) { --i: 1; }
+  .cm-code span:nth-child(3) { --i: 2; }
+  :global([data-tile]:is(:hover, :focus-within)) .cm-code span {
+    animation: cm-type 3.6s steps(22, end) infinite;
+    animation-delay: calc(var(--i, 0) * 0.55s - 0.55s);
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .cm-ok {
+    animation: cm-ok 3.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  }
+  @keyframes cm-type {
+    0%, 8% { clip-path: inset(0 100% 0 0); }
+    32%, 100% { clip-path: inset(0); }
+  }
+  @keyframes cm-ok {
+    0%, 55% { opacity: 0.35; transform: scale(0.92); }
+    65% { opacity: 1; transform: scale(1.08); }
+    75%, 100% { opacity: 1; transform: none; }
+  }
+
+  /* Jobs: the clock turns and the current run fills. */
+  .job-hand {
+    transform-box: view-box;
+    transform-origin: 8px 8px;
+  }
+  .job-runs i.now {
+    background: linear-gradient(var(--mid), var(--mid)) left / 0% 100% no-repeat, var(--ghost);
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .job-hand {
+    animation: job-turn 2.4s linear infinite;
+  }
+  :global([data-tile]:is(:hover, :focus-within)) .job-runs i.now {
+    animation: job-run 2.4s ease-in-out infinite;
+  }
+  @keyframes job-turn {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes job-run {
+    0% { background-size: 0% 100%, auto; }
+    80%, 100% { background-size: 100% 100%, auto; }
+  }
+
+  /* Memory and skills: memories arrive, then the skills it can use. */
+  .mem-line:nth-of-type(2) { --i: 0; }
+  .mem-line:nth-of-type(3) { --i: 1; }
+  :global([data-tile]:is(:hover, :focus-within)) .mem-line {
+    animation: mem-in 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    animation-delay: calc(var(--i, 0) * 0.3s);
+  }
+  .mem-skills li:nth-child(3) { --i: 1; }
+  :global([data-tile]:is(:hover, :focus-within)) .mem-skills li:not(.mem-label) {
+    animation: mem-pop 3s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+    animation-delay: calc(0.6s + var(--i, 0) * 0.2s);
+  }
+  @keyframes mem-in {
+    0% { opacity: 0; transform: translateX(-6px); }
+    20%, 100% { opacity: 1; transform: none; }
+  }
+  @keyframes mem-pop {
+    0%, 30%, 100% { transform: none; }
+    15% { transform: scale(1.1); }
   }
 </style>

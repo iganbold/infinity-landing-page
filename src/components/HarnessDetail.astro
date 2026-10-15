@@ -7,11 +7,15 @@
  */
 import HarnessArt from "./HarnessArt.astro";
 import { MARK } from "@/lib/mark";
+import { CONNECTOR_ROWS } from "@/lib/connectors";
 
 interface Props {
   name: string;
 }
 const { name } = Astro.props;
+
+/** A connector's mark by name, for the connections list. */
+const mark = (name: string) => CONNECTOR_ROWS.flat().find((c) => c.name === name)!;
 
 /** Surfaces for the fan, top to bottom, with the y of each chip's middle. */
 const SURFACES = [
@@ -312,6 +316,104 @@ const SURFACES = [
         <li><span><b class="ver">v1.3</b>Adds the customer-facing summary</span><em class="yes">Current</em></li>
         <li><span><b class="ver">v1.2</b>Groups fixes by product area</span></li>
         <li><span><b class="ver">v1.1</b>First published</span></li>
+      </ol>
+    </div>
+  )
+}
+
+{
+  name === "connectors" && (
+    <div class="hd cnx">
+      <span class="lbl">Connections</span>
+      <ol class="rows">
+        {[
+          { name: "Linear", tools: "Tools · 8 of 8 enabled", on: true },
+          { name: "GitHub", tools: "Tools · 12 of 14 enabled", on: true },
+          { name: "Zendesk", tools: "Tools · 6 of 6 enabled", on: true },
+        ].map((c) => (
+          <li>
+            <span class="cnx-who">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path d={mark(c.name).path} fill={mark(c.name).color} />
+              </svg>
+              <span class="two"><code>{c.name}</code><small>{c.tools}</small></span>
+            </span>
+            <i class:list={["tg", { on: c.on }]} />
+          </li>
+        ))}
+        <li>
+          <span class="cnx-who">
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              <path d={mark("GitHub").path} fill={mark("GitHub").color} />
+            </svg>
+            <span class="two"><code>github.merge_pr</code><small>Its definition changed on the server</small></span>
+          </span>
+          <b class="v v--wait">Needs review</b>
+        </li>
+        <li>
+          <span class="cnx-who">
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              <path d={mark("MCP server").path} fill={mark("MCP server").color} />
+            </svg>
+            <span class="two"><code>Custom MCP server</code><small>https://mcp.example.com</small></span>
+          </span>
+          <i class="tg" />
+        </li>
+      </ol>
+    </div>
+  )
+}
+
+{
+  name === "code" && (
+    <div class="hd cmx">
+      <code class="cmx-code">
+        <span><b>const</b> found = <b>await</b> tools.<em>search</em>(<s>"Linear issues"</s>)</span>
+        <span><b>const</b> issues = <b>await</b> tools.<em>call</em>(found[0])</span>
+        <span><b>return</b> issues.length</span>
+      </code>
+      <ol class="log">
+        <li>
+          <span class="two"><code>tools.search</code><small>"Linear issues" · 3 found</small></span>
+          <b class="v v--ok">Done</b>
+        </li>
+        <li>
+          <span class="two"><code>linear.acme.list_issues</code><small>enabled · agent has access</small></span>
+          <b class="v v--ok">Allowed</b>
+        </li>
+        <li>
+          <span class="two"><code>files.export_all</code><small>tool not enabled</small></span>
+          <b class="v v--no">Denied</b>
+        </li>
+      </ol>
+    </div>
+  )
+}
+
+{
+  name === "jobs" && (
+    <div class="hd jbx">
+      <span class="two">
+        <code>Weekly digest</code>
+        <small>Mondays at 9:00 AM · America/Los_Angeles</small>
+      </span>
+      <ol class="log">
+        <li>
+          <span class="two"><code>Schedule</code><small>Mon 9:00 AM · 2m 14s</small></span>
+          <b class="v v--ok">Delivered</b>
+        </li>
+        <li>
+          <span class="two"><code>Run now</code><small>Fri 4:12 PM · 1m 52s</small></span>
+          <b class="v v--ok">Delivered</b>
+        </li>
+        <li>
+          <span class="two"><code>API</code><small>Thu 11:30 AM · 2m 03s</small></span>
+          <b class="v v--ok">Delivered</b>
+        </li>
+        <li>
+          <span class="two"><code>Schedule</code><small>Mon 9:00 AM · nothing new</small></span>
+          <b class="v v--wait">No output</b>
+        </li>
       </ol>
     </div>
   )
@@ -1121,5 +1223,80 @@ const SURFACES = [
       flex-wrap: wrap;
       border-radius: 18px;
     }
+  }
+  /* Connectors: the connections with their marks, a tool held for review. */
+  .cnx {
+    display: grid;
+    gap: 6px;
+    padding: 2px 6px;
+  }
+  .cnx-who {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+  }
+  .cnx-who svg {
+    flex: none;
+  }
+  .tg {
+    position: relative;
+    flex: none;
+    width: 30px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--ghost);
+  }
+  .tg::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(18, 40, 26, 0.25);
+  }
+  .tg.on {
+    background: var(--deep);
+  }
+  .tg.on::after {
+    left: 14px;
+  }
+
+  /* Code mode: the program, then each call it made, checked. */
+  .cmx,
+  .jbx {
+    display: grid;
+    gap: 12px;
+  }
+  .cmx-code {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    color: #ffffff;
+    background: var(--moss);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .cmx-code span {
+    display: block;
+  }
+  .cmx-code b {
+    font-weight: 400;
+    color: var(--pale);
+  }
+  .cmx-code em {
+    font-style: normal;
+    color: #9fd35a;
+  }
+  .cmx-code s {
+    text-decoration: none;
+    color: #f0c46a;
+  }
+  .jbx > .two {
+    padding: 0 4px;
   }
 </style>

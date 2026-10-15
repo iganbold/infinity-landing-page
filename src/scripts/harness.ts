@@ -2,7 +2,8 @@
  * Organizational Harness: the bento tiles (still previews, fitted to their
  * tiles) open one detail view, a dialog with a panel per tile. The product views in that panel play
  * a short loop of what their mechanism does, only while on screen, holding
- * still under the pointer so they can be read. Three kinds of loop, picked by
+ * still under the pointer so they can be read. A tile's own loop is the other
+ * way round: still until the pointer is on it. Three kinds of loop, picked by
  * `data-loop`:
  *
  *   seq     steps 0 … data-steps − 1; [data-at=k] is on from step k,
@@ -180,11 +181,31 @@ export function mountHarness(section: HTMLElement) {
   );
 
   for (const r of runs) {
+    // Tiles hold their rest state and play only under the pointer (or with
+    // focus inside), so a screenful of tiles costs nothing while it's read.
+    const tile = r.root.closest<HTMLElement>("[data-tile]");
+    if (tile) {
+      r.loop.rest();
+      const play = () => {
+        if (r.timer) return;
+        r.loop.tick();
+        r.timer = window.setInterval(() => r.loop.tick(), r.ms);
+      };
+      const stop = () => {
+        clearInterval(r.timer);
+        r.timer = 0;
+      };
+      tile.addEventListener("pointerenter", play);
+      tile.addEventListener("pointerleave", stop);
+      tile.addEventListener("focusin", play);
+      tile.addEventListener("focusout", stop);
+      continue;
+    }
     io.observe(r.root);
-    // Hold on the tile, or on the picture in the detail view (the pointer
-    // rests on the open panel almost all the time).
-    const tile = r.root.closest<HTMLElement>("[data-tile], [data-hold]") ?? r.root;
-    tile.addEventListener("pointerenter", () => (r.held = true));
-    tile.addEventListener("pointerleave", () => (r.held = false));
+    // Hold on the picture in the detail view (the pointer rests on the open
+    // panel almost all the time).
+    const hold = r.root.closest<HTMLElement>("[data-hold]") ?? r.root;
+    hold.addEventListener("pointerenter", () => (r.held = true));
+    hold.addEventListener("pointerleave", () => (r.held = false));
   }
 }

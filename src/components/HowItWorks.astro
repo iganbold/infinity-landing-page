@@ -36,7 +36,6 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
                 aria-hidden="true"
                 style={`background-image: image-set(url(${BACKDROPS[i]}.webp) type("image/webp"), url(${BACKDROPS[i]}.jpg) type("image/jpeg"))`}
               />
-              <span class="v-lens" aria-hidden="true" data-shape-blur={`${BACKDROPS[i]}.webp`} />
               <div class="fig-card">
                 <div class="fig-paper">
                   <div class="v-head">
@@ -80,7 +79,6 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
 
 <script>
   import { mountFigure, type FigureName } from "@/scripts/figures";
-  import { mountShapeBlur } from "@/scripts/shape-blur";
 
   // Figures: filled 2D graphs that tour their states and answer the pointer;
   // each writes its status into the line above it and keeps the rail below.
@@ -116,29 +114,6 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
     panels.forEach((el) => io.observe(el));
     addEventListener("scroll", kick, { passive: true });
     addEventListener("resize", kick, { passive: true });
-  }
-
-  // Shape blur on the backdrop: hovering the photo blurs it in a rect around
-  // the card, sharp at the card's edge and softer toward the panel's, most
-  // under the pointer. The card stays crisp; the host sits under it, so only
-  // the exposed photo answers the hover.
-  if (matchMedia("(hover: hover)").matches) {
-    document.querySelectorAll<HTMLElement>("[data-shape-blur]").forEach((el) => {
-      const panel = el.parentElement!;
-      mountShapeBlur(el, {
-        src: el.dataset.shapeBlur!,
-        // Redraw the photo exactly where the parallax layer has it (.v-bg).
-        box: panel.querySelector<HTMLElement>(".v-bg")!,
-        position: [0.5, 0.62],
-        core: panel.querySelector<HTMLElement>(".fig-card")!,
-        radius: 20,
-        blur: 14,
-        lensSize: 0.4,
-        lensSoftness: 0.8,
-        rest: 0.45,
-        chroma: 0.4,
-      });
-    });
   }
 </script>
 
@@ -250,20 +225,6 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
     z-index: -1;
     background: center 62% / cover no-repeat;
     will-change: transform;
-  }
-  /* Hover target for the shape blur: covers the panel under the card, so the
-     pointer only reaches it on the exposed photo. Its canvas redraws the photo
-     blurred over the CSS one, and fades in on hover. */
-  .v-lens {
-    position: absolute;
-    inset: 0;
-  }
-  .v-lens :global(canvas) {
-    opacity: 0;
-    transition: opacity 500ms var(--ease);
-  }
-  .v-lens:hover :global(canvas) {
-    opacity: 1;
   }
   /* The card: a frosted rim that takes its tint from the photo, holding a
      paper sheet with the caption and status, the figure, and its rail. */
