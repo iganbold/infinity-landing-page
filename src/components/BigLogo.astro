@@ -49,6 +49,8 @@ const MARK = "M20 12.5C16.6 8.1 13.3 5.6 10 5.6a6.9 6.9 0 0 0 0 13.8c3.3 0 6.6-2
       ink: getComputedStyle(host).color,
       // A touch less colour split than the default, so the fringe reads as glass, not glitch.
       refraction: 0.012,
+      // The brand's effect colours: lime one side, sunrise gold the other.
+      fringe: ["#9fd35a", "#f0b445"],
       background: getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim() || "#faf8f3",
     });
   }

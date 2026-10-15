@@ -20,7 +20,7 @@ uniform sampler2D uText;
 uniform vec2 uResolution, uPointer;
 uniform float uPointerActive, uTime, uWarpStrength, uWarpScale, uSpeed;
 uniform float uPointerInfluence, uPointerStrength, uRefraction, uRipple, uMotion;
-uniform vec3 uInk, uBg;
+uniform vec3 uInk, uBg, uFringeA, uFringeB;
 in vec2 vUv;
 out vec4 fragColor;
 
@@ -54,12 +54,14 @@ void main() {
   float sl = length(sd);
   sd = sl > 0.00001 ? sd / sl : vec2(0.7071);
   vec2 split = sd * uRefraction * 0.16 * (0.35 + lens * 1.65);
-  // The texture is a coverage mask. Each channel takes its own (split) coverage,
-  // and the ink is mixed over the known background per channel: clean fringes
-  // on light grounds, where blending dark ink with alpha would muddy them.
-  vec3 cov = vec3(sampleText(d + split).a, sampleText(d).a, sampleText(d - split).a);
-  vec3 col = mix(uBg, uInk, cov) + lens * cov.g * 0.04;
-  fragColor = vec4(col, 1.0);
+  // The texture is a coverage mask, read as two copies split either way. Where
+  // both cover, it's ink; where only one does, that copy's tint; where neither,
+  // the background. The weights always sum to one, so it's mixed over the known
+  // background (clean on light grounds, where dark ink with alpha would muddy),
+  // and with no split it's plain ink.
+  float a = sampleText(d + split).a, b = sampleText(d - split).a, both = min(a, b);
+  vec3 col = uBg * (1.0 - max(a, b)) + uFringeA * (a - both) + uFringeB * (b - both) + uInk * both;
+  fragColor = vec4(col + lens * both * 0.04, 1.0);
 }`;
 
 const rgb = (css: string): [number, number, number] => {
@@ -74,6 +76,8 @@ export interface WarpOptions {
   /** Ink and the ground it sits on; the canvas is opaque and paints both. */
   ink: string;
   background: string;
+  /** The two tints of the split fringe, one per side. */
+  fringe?: [string, string];
   warpStrength?: number;
   warpScale?: number;
   speed?: number;
@@ -84,7 +88,7 @@ export interface WarpOptions {
 }
 
 export function mountWarpText(host: HTMLElement, paint: (ctx: CanvasRenderingContext2D, box: DOMRect) => void, o: WarpOptions) {
-  const opt = { warpStrength: 0.08, warpScale: 1.7, speed: 0.55, pointerInfluence: 0.42, pointerStrength: 0.38, refraction: 0.018, ripple: true, ...o };
+  const opt = { fringe: ["#9fd35a", "#f0b445"] as [string, string], warpStrength: 0.08, warpScale: 1.7, speed: 0.55, pointerInfluence: 0.42, pointerStrength: 0.38, refraction: 0.018, ripple: true, ...o };
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
   Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%", display: "block" });
@@ -123,6 +127,8 @@ export function mountWarpText(host: HTMLElement, paint: (ctx: CanvasRenderingCon
   gl.uniform1f(U("uMotion"), reduced ? 0 : 1);
   gl.uniform3fv(U("uInk"), rgb(opt.ink));
   gl.uniform3fv(U("uBg"), rgb(opt.background));
+  gl.uniform3fv(U("uFringeA"), rgb(opt.fringe[0]));
+  gl.uniform3fv(U("uFringeB"), rgb(opt.fringe[1]));
   const uRes = U("uResolution"), uPtr = U("uPointer"), uAct = U("uPointerActive"), uTime = U("uTime");
 
   const tex = gl.createTexture();
