@@ -5,7 +5,7 @@
 
 export const site = {
   name: "Infinity",
-  tagline: "Applied Super Intelligence Lab",
+  tagline: "Outcome Machines for Organizations",
   description:
     "Goal turns everything your company knows into one living brain that every person and every AI agent can think with, safely.",
   nav: [
@@ -18,38 +18,38 @@ export const site = {
 } as const;
 
 export const hero = {
-  title: "AI Systems that\nown outcomes.",
+  title: "Build outcome\nmachines.",
   subtitle:
-    "Strong foundations make outcomes flow like water. Systems turn them into durable agents that work alongside you to carry each outcome forward.",
-  cta: { label: "Book a demo", href: "/request-demo" },
+    "Outcome machines are durable agents built on your organization’s knowledge, tools, memory, and guardrails. They grow stronger with every run, until outcomes flow like water.",
+  cta: { label: "Request a demo", href: "/request-demo" },
   scroll: "Scroll to explore",
 } as const;
 
 export const whoWeAre = {
   /** `*text*` renders as the brand highlight. */
-  title: "We are an *Applied Super Intelligence Lab*, building agents that take ongoing responsibility for business outcomes.",
-  cta: { label: "Book a demo", href: "/request-demo" },
+  title: "We are an *Applied Super Intelligence Lab*, focused on building the foundations that make outcomes flow.",
+  cta: { label: "Request a demo", href: "/request-demo" },
   /** The progression the section argues for; the last one is the product. */
   compare: [
-    { name: "Chatbots", title: "Answer questions", body: "You provide the prompt.", span: "One reply", level: 1 },
-    { name: "Agents", title: "Complete tasks", body: "You delegate the work.", span: "One task", level: 2 },
-    { name: "Systems", title: "Own outcomes", body: "You define success and guardrails.", span: "Ongoing", level: 3 },
+    { name: "Chatbots", title: "Answer questions", body: "You ask each question.", span: "One reply", level: 1 },
+    { name: "Agents", title: "Complete tasks", body: "You delegate each task.", span: "One task", level: 2 },
+    { name: "Outcome Machines", title: "Own outcomes", body: "You define success and guardrails.", span: "Ongoing", level: 3 },
   ],
   /** Row labels for the comparison, one per field above. */
-  compareRows: { title: "What it does", body: "Your part", span: "How long it works", level: "Ownership" },
+  compareRows: { title: "What it does", body: "Your part", span: "How long it works", level: "Responsibility" },
 } as const;
 
 export const howItWorks = {
-  title: "Trust a System with the outcome.",
+  title: "How an outcome machine works.",
   steps: [
     {
       title: "Set the outcome.",
-      body: "Define what you want to achieve, how you’ll measure success, and the boundaries of the System’s role.",
+      body: "Define what you want to achieve, how you’ll measure success, and the boundaries of its role.",
       visual: "Outcome and responsibility",
     },
     {
       title: "Bring it into your company.",
-      body: "Teach it what your team knows and how you like to work. Plug in the tools you already use and let your best skills reach every corner of the organization.",
+      body: "Teach it what your team knows and connect the tools they use. The setup your most AI-forward people built for themselves becomes part of how the whole organization works.",
       visual: "Company context and tools",
     },
     {
@@ -58,9 +58,9 @@ export const howItWorks = {
       visual: "Team collaboration",
     },
     {
-      title: "It keeps learning.",
-      body: "Every outcome it carries becomes part of your company brain. It remembers what worked, what didn't, and why. That knowledge compounds, so each new project starts a little wiser than the last.",
-      visual: "A brain that keeps growing",
+      title: "Learning compounds with every outcome.",
+      body: "Every outcome captures what worked, what didn’t, and why. Instead of disappearing in individual chat histories, that learning becomes organizational infrastructure. Every outcome that follows starts from what your company has already learned.",
+      visual: "Knowledge that compounds",
     },
   ],
   closing: {
