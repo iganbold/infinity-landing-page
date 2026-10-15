@@ -131,12 +131,12 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     <div class="ha hl-crop">
       <div class="hl-stage" data-hairline-slot="sandbox" />
       <svg class="hl-notes" viewBox="50 60 300 225" aria-hidden="true">
-        <text x="58" y="86">Control plane</text>
+        <text x="58" y="86">Compute</text>
         <path d="M58 92H166L188 104" />
         <rect x="186.5" y="102.5" width="3" height="3" />
-        <text x="344" y="270" text-anchor="end">Sandbox per task</text>
-        <path d="M344 256H312L305 163" />
-        <rect x="303.5" y="160.5" width="3" height="3" />
+        <text x="344" y="270" text-anchor="end">Storage</text>
+        <path d="M344 256H286L208 207" />
+        <rect x="206.5" y="205.5" width="3" height="3" />
       </svg>
     </div>
   )
@@ -552,8 +552,8 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     --hairline-lo: #d3dbd4;
     --hairline-stroke: 1;
   }
-  /* Each sandbox's fence: dotted in the brand's light green, and deep green
-     around the lit one, with its plate. */
+  /* Each compute/storage unit's fence: dotted in the brand's light green,
+     and deep green around the lit one, with its compute plate. */
   .hl-stage :global(path.fence) {
     stroke: var(--mid);
     stroke-width: 1.4;

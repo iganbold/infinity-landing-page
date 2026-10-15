@@ -249,9 +249,8 @@ export const harness = {
 export const footer = {
   title: "Put an outcome machine\nto work",
   body: "Tell us what you want to achieve. We'll show you how an outcome machine takes it on.",
-  demo: { label: "Book a demo", href: "/request-demo" },
-  /** Replace with the real inbox. */
-  contact: { label: "Contact us", href: "mailto:hello@example.com" },
+  demo: { label: "Request a demo", href: "/request-demo" },
+  contact: { label: "Contact us", href: "mailto:hello@infinity.engineering" },
   links: [
     { label: "Who we are", href: "#who-we-are" },
     { label: "How it works", href: "#how-it-works" },
