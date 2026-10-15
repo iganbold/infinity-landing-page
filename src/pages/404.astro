@@ -2,6 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import { site, hero } from "@/content/site";
 import { MARK } from "@/lib/mark";
+import { hero as heroImage } from "@/lib/assets";
 
 /** Not found: the hero's sunrise, dimmed, with "4∞4" and a way back. */
 const copy = {
@@ -12,9 +13,10 @@ const copy = {
 ---
 
 <Base title={`Page not found — ${site.name}`}>
+  <link slot="head" rel="preload" as="image" href={heroImage} fetchpriority="high" />
   <section class="nf" aria-labelledby="nf-title">
     <div class="photo" aria-hidden="true">
-      <img src="/infinity-background.png" alt="" decoding="async" />
+      <img src={heroImage} alt="" decoding="async" />
     </div>
     <div class="shade" aria-hidden="true"></div>
 

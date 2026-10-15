@@ -8,12 +8,17 @@ import HowItWorks from "@/components/HowItWorks.astro";
 import Harness from "@/components/Harness.astro";
 import Footer from "@/components/Footer.astro";
 import BigLogo from "@/components/BigLogo.astro";
+import { hero, backdrops } from "@/lib/assets";
 
 /** Footer reveal (scroll past the bottom to lift the page). Off for now; flip to true to bring it back. */
 const footerReveal = false;
 ---
 
 <Base>
+  <!-- The hero photo first; then the forest backdrops further down, at low priority so
+       they queue behind it (WebP only: browsers without it skip these and use the JPEGs). -->
+  <link slot="head" rel="preload" as="image" href={hero} fetchpriority="high" />
+  {Object.values(backdrops).map((b) => <link slot="head" rel="preload" as="image" type="image/webp" href={b.webp} fetchpriority="low" />)}
   <!-- Everything that lifts on the footer reveal. Opaque, so the panel behind stays hidden. -->
   <div class="page" data-reveal-page>
   <Hero />
@@ -28,7 +33,7 @@ const footerReveal = false;
   {
     footerReveal && (
       <div class="reveal-panel" aria-hidden="true" data-reveal-panel>
-        <img src="/infinity-background.png" alt="" loading="lazy" decoding="async" />
+        <img src={hero} alt="" loading="lazy" decoding="async" />
       </div>
     )
   }

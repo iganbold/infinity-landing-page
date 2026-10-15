@@ -1,5 +1,6 @@
 ---
 import { howItWorks as h } from "@/content/site";
+import { backdropStyle, type Backdrop } from "@/lib/assets";
 
 /** The closing block under the steps ("An ongoing teammate…"). Hidden for now; flip to true to bring it back. */
 const showClosing = false;
@@ -16,7 +17,7 @@ const FIGURES = [
  * vista → panorama, a zoom-out from the ground to the horizon as the steps
  * widen in scope. WebP first, JPEG where WebP isn't supported.
  */
-const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].map((n) => `/primitives/${n}`);
+const BACKDROPS: Backdrop[] = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"];
 ---
 
 <section class="how" id="how-it-works" aria-labelledby="how-title">
@@ -34,7 +35,7 @@ const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"].
               <span
                 class="v-bg"
                 aria-hidden="true"
-                style={`background-image: image-set(url(${BACKDROPS[i]}.webp) type("image/webp"), url(${BACKDROPS[i]}.jpg) type("image/jpeg"))`}
+                style={backdropStyle(BACKDROPS[i])}
               />
               <div class="fig-card">
                 <div class="fig-paper">

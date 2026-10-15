@@ -2,16 +2,15 @@
 import { harness as h } from "@/content/site";
 import HarnessArt from "./HarnessArt.astro";
 import HarnessDetail from "./HarnessDetail.astro";
+import { backdropStyle as photo, type Backdrop } from "@/lib/assets";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** A forest photo as a background, WebP first (same backdrops as How it works). */
-const photo = (n: string) =>
-  `background-image: image-set(url(/primitives/${n}.webp) type("image/webp"), url(/primitives/${n}.jpg) type("image/jpeg"))`;
-const BACKDROPS = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"];
+/** Forest photos for backgrounds (same backdrops as How it works). */
+const BACKDROPS: Backdrop[] = ["01-forest-floor", "02-woodland", "03-vista", "04-panorama"];
 
 /** Tiles whose graphic sits on a photo, framed like the How it works cards. */
-const PHOTO: Partial<Record<string, string>> = { credentials: "01-forest-floor" };
+const PHOTO: Partial<Record<string, Backdrop>> = { credentials: "01-forest-floor" };
 /** The one tile in the brand green. */
 const GREEN = "checks";
 /** The detail view and each tile's "+" opener. Off for now; flip to true to bring them back. */

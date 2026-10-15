@@ -2,6 +2,7 @@
 import "@/styles/global.css";
 import { site } from "@/content/site";
 import Nav from "@/components/Nav.astro";
+import { fonts } from "@/lib/assets";
 
 /** Nav is hidden for now; flip to true to bring back the top bar and bottom dock. */
 const showNav = false;
@@ -58,6 +59,9 @@ const jsonLd = {
     <meta name="description" content={description} />
     <meta name="theme-color" content="#1d3a2b" />
     <link rel="canonical" href={url} />
+    <!-- Fetch the first screen's font before the CSS asks for it; pages add their own preloads in the head slot. -->
+    {fonts.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
+    <slot name="head" />
     <!-- Icons: .ico and PNG for Google and older browsers, SVG for the rest. -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
