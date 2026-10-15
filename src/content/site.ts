@@ -19,7 +19,7 @@ export const site = {
 export const hero = {
   title: "Build outcome\nmachines",
   subtitle:
-    "Outcome machines are durable agents built on your organization’s knowledge, tools, memory, and guardrails. They grow stronger with every run, until outcomes flow like water.",
+    "Outcome machines are durable agents built on your organization’s knowledge, tools, memory, and guardrails. They grow stronger with every run, making outcomes flow like water.",
   cta: { label: "Request a demo", href: "/request-demo" },
   scroll: "Scroll to explore",
 } as const;
