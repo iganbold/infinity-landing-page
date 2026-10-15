@@ -106,8 +106,16 @@ const parts = segs.map((seg, i) => {
     position: relative;
     z-index: 1;
     padding: clamp(48px, 7vh, 80px) 0 clamp(48px, 7vh, 80px);
-    /* Transparent: the page's green-to-ivory blend shows through. */
-    background: transparent;
+    /* Green all around the card, continuing the hero's ground, shifting to
+       the page's ivory over the section's last stretch. */
+    background: linear-gradient(
+      180deg,
+      var(--canvas-green) 0%,
+      var(--canvas-green) 62%,
+      #4f6b52 76%,
+      #c9d3c0 90%,
+      var(--canvas) 100%
+    );
     --ink-dark: #16150f;
   }
 

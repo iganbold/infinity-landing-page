@@ -7,7 +7,7 @@ export const site = {
   name: "Infinity",
   tagline: "Outcome Machines for Organizations",
   description:
-    "Goal turns everything your company knows into one living brain that every person and every AI agent can think with, safely.",
+    "Outcome machines are durable agents built on your organization’s knowledge, tools, memory and guardrails. They grow stronger with every run.",
   nav: [
     { label: "Home", href: "/" },
     { label: "Product", href: "/#product", more: true },
@@ -92,7 +92,7 @@ export const harness = {
     {
       key: "access",
       title: "Your whole team, each with the right access",
-      label: "Multiplayer permissions",
+      label: "Multiplayer sharing",
       body: "Every agent has its own identity, like a person on your team. Give people, teams and agents exactly the access they need, down to a single agent, key vault, connection or tool.",
       points: [
         "Being an admin doesn’t let someone use your keys or read your conversations.",

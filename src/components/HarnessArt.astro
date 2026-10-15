@@ -32,7 +32,7 @@ const AUDIT = [
   { what: "tool.invoke", at: "14:02" },
   { what: "grant_request", at: "13:58" },
   { what: "skill.install", at: "13:41" },
-  { what: "connection.use", at: "13:40" },
+  { what: "skill.update", at: "13:40" },
 ];
 
 /** Access: the levels a person can hold, lowest first (the same words as the detail view). */
@@ -258,7 +258,7 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
           <li class:list={{ on: m.on }}>
             <i />
             {m.mark ? (
-              <svg class="mdl-mark" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+              <svg class="mdl-mark" width="16" height="16" viewBox={m.mark.viewBox ?? "0 0 24 24"} aria-hidden="true">
                 <path d={m.mark.path} fill={m.mark.color} />
               </svg>
             ) : m.name === "Included models" ? (

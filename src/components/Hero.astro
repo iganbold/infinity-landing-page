@@ -1,5 +1,5 @@
 ---
-import { hero } from "@/content/site";
+import { hero, site } from "@/content/site";
 import InfinityGL from "./InfinityGL.astro";
 import { infinityPath } from "@/lib/infinity";
 
@@ -20,6 +20,9 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
   <div class="shade" aria-hidden="true"></div>
 
   <div class="fade" aria-hidden="true"></div>
+
+  <!-- The wordmark is set in lowercase; the name stays "Infinity" everywhere else. -->
+  <a href="/" class="brand" aria-label={`${site.name} home`}>{site.name.toLowerCase()}</a>
 
   <div class="stage frame">
     <!-- The loop and the headline share one box, so the headline sits in the curve at any width.
@@ -131,7 +134,19 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
     object-fit: cover;
     object-position: 50% 50%;
     transform-origin: 30% 45%;
-    animation: drift 40s ease-in-out infinite alternate;
+    /* First the intro: zoomed in, easing out to the drift's starting size;
+       then the slow drift takes over from exactly there. */
+    animation:
+      zoom-out 5s cubic-bezier(0.33, 1, 0.68, 1) both,
+      drift 40s ease-in-out 5s infinite alternate;
+  }
+  @keyframes zoom-out {
+    from {
+      transform: scale(1.22);
+    }
+    to {
+      transform: scale(1.04);
+    }
   }
   @keyframes drift {
     from {
@@ -214,6 +229,26 @@ const lines = hero.title.split("\n").map((l) => l.split(" ").map((w) => ({ w, i:
   @keyframes travel {
     to {
       stroke-dashoffset: -1000;
+    }
+  }
+  /* The wordmark, centred along the top of the hero. */
+  .brand {
+    position: absolute;
+    top: clamp(20px, 3.6vh, 36px);
+    left: 50%;
+    z-index: 2;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--cream);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+    transform: translateX(-50%);
+    animation: brand-in 900ms var(--ease) 100ms both;
+  }
+  @keyframes brand-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -6px);
     }
   }
   .fade {

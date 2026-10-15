@@ -62,16 +62,9 @@ const footerReveal = false;
   /* Same ground as the body, but on the element that moves, so it stays opaque. */
   .page {
     position: relative;
+    /* Ivory; the green behind the top comes from the hero and the section
+       under it (WhoWeAre), which blends to ivory at its own end. */
     background-color: var(--canvas);
-    background-image: linear-gradient(
-      180deg,
-      var(--canvas-green) 0,
-      var(--canvas-green) 105vh,
-      #4f6b52 135vh,
-      #c9d3c0 165vh,
-      var(--canvas) 195vh
-    );
-    background-repeat: no-repeat;
     /* Nothing may overhang the page's end, or the panel behind would peek out. */
     overflow-x: clip;
     overflow-y: clip;
