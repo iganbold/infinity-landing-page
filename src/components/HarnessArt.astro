@@ -13,7 +13,7 @@ interface Props {
 }
 const { name } = Astro.props;
 
-const LOCK = "M1 5h9v6.2a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 11.2zM3 5V3.6a2.5 2.5 0 0 1 5 0V5";
+const LOCK = "M1.5 6.5h9v5.4a1.6 1.6 0 0 1-1.6 1.6H3.1a1.6 1.6 0 0 1-1.6-1.6zM3.5 6.5v-2a2.5 2.5 0 0 1 5 0v2M6 9.3v1.5";
 
 /** Models: the choices an agent can run on, the picked one marked. Scrolls as an endless list. */
 const MODELS = [
@@ -114,8 +114,8 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
         <code>ghp_proxy_…</code>
       </span>
       <span class="cr-lock">
-        <svg width="12" height="14" viewBox="0 0 11 13" aria-hidden="true">
-          <path d={LOCK} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+        <svg width="14" height="16" viewBox="-1 -1 14 16" aria-hidden="true">
+          <path d={LOCK} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </span>
       <span class="cr-chip cr-chip--out">
@@ -555,7 +555,8 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
   .cr-lock svg {
     position: relative;
     box-sizing: content-box;
-    padding: 9px 10px 9px 11px;
+    padding: 8px 9px;
+    overflow: visible;
     border-radius: 50%;
     background: var(--deep);
   }
@@ -1506,7 +1507,7 @@ const BRAIN = [...HALF, ...HALF.map(mirror)];
     height: 6px;
     margin-top: -3px;
     border-radius: 50%;
-    background: var(--mid);
+    background: var(--deep);
     opacity: 0;
   }
   :global([data-tile]:is(:hover, :focus-within)) .cr-lock::after {
